@@ -1879,27 +1879,37 @@ def registrar_evento(event_type_id):
 
 @app.route('/admin')
 @login_required
-@admin_required # Protege a rota
+@admin_required
 def admin_dashboard():
     """Página principal do painel admin."""
-    
-    # --- CORREÇÃO APLICADA AQUI ---
-    # 1. Instancia o formulário de exportação
     export_form = EventExportForm() 
-    # --- FIM DA CORREÇÃO ---
     
-    # Busca todos os logs de eventos para a tabela de remoção
+    # --- Busca de Logs de Eventos (Existente) ---
     all_logs = EventLog.query.options(
         joinedload(EventLog.user),
         joinedload(EventLog.event_type)
     ).order_by(EventLog.timestamp.desc()).all()
     
-    # --- CORREÇÃO APLICADA AQUI ---
-    # 2. Passa o 'export_form' para o template
+    # ============================================
+    # === ADIÇÃO: Busca Queries Pendentes ===
+    pending_queries = QueryRequest.query.options(
+        joinedload(QueryRequest.requester) # Carrega dados do solicitante
+    ).filter_by(status='Pendente').order_by(QueryRequest.created_at.desc()).all()
+    
+    # === ADIÇÃO: Busca Queries Respondidas ===
+    answered_queries = QueryRequest.query.options(
+        joinedload(QueryRequest.requester), # Carrega solicitante
+        joinedload(QueryRequest.responder)  # Carrega quem respondeu
+    ).filter_by(status='Respondida').order_by(QueryRequest.answered_at.desc()).all()
+    # ============================================
+
     return render_template('admin.html', 
                            title="Painel Admin", 
                            all_logs=all_logs,
-                           export_form=export_form)
+                           export_form=export_form,
+                           pending_queries=pending_queries,   # <-- Passa para o template
+                           answered_queries=answered_queries  # <-- Passa para o template
+                          )
 
 @app.route('/admin/event/delete/<int:log_id>', methods=['POST'])
 @login_required
@@ -2205,7 +2215,32 @@ def admin_editar_usuario(user_id):
                            title=f"Editar Usuário: {user.username}", 
                            form=form, 
                            user=user)
+                           
+# --- NOVA ROTA DE ADMIN PARA DELETAR QUERIES ---
+@app.route('/admin/query/delete/<int:query_id>', methods=['POST'])
+@login_required
+@admin_required
+def admin_delete_query(query_id):
+    """Rota de admin para deletar uma solicitação de query."""
+    
+    # Busca a query pelo ID
+    query_to_delete = db.session.get(QueryRequest, query_id)
+    
+    if not query_to_delete:
+        flash("Solicitação de query não encontrada.", "danger")
+        return redirect(url_for('admin_dashboard'))
 
+    try:
+        # Deleta a query do banco de dados
+        db.session.delete(query_to_delete)
+        db.session.commit()
+        flash("Solicitação de query removida com sucesso.", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Erro ao remover a solicitação de query: {e}", "danger")
+        
+    return redirect(url_for('admin_dashboard'))
+# --- FIM DA NOVA ROTA ---
 # ... (Mantenha suas outras rotas de admin: /admin, /admin/event/delete, /admin/fila/pular, /admin/exportar-eventos) ...
 # ------------------- 5. BLOCO DE EXECUÇÃO -------------------
 if __name__ == '__main__':
