@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <h1>{{ title }}</h1>
+       <p>Seu desempenho em {{ now.strftime('%B de %Y') }}</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="report-section">
+        <div class="my-average-card">
+            <h2>Sua Média do Mês</h2>
+            <p class="average-time">{{ my_average_time }}</p>
+            <p class="record-count">{{ all_my_monthly_records_count }} dias registrados no total</p>
+        </div>
+    </div>
+
+    <div class="log-time-section">
+        <div class="history-header">
+            <h2>Seu Histórico Diário</h2>
+            <form method="GET" action="{{ url_for('relatorio_tempo') }}" class="search-form">
+                <input type="date" name="search_date" class="form-control" value="{{ search_date or '' }}">
+                <button type="submit" class="btn">Buscar</button>
+                <a href="{{ url_for('relatorio_tempo') }}" class="btn-clear">Limpar</a>
+            </form>
+        </div>
+        
+        {% if my_records %}
+            <table class="styled-table">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Tempo Registrado (MM:SS)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in my_records %}
+                    <tr>
+                        <td>{{ record.date_recorded.strftime('%d/%m/%Y') }}</td>
+                        <td>{{ '%02d:%02d' % (record.time_in_seconds // 60, record.time_in_seconds % 60) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>Nenhum tempo registrado para a data selecionada.</p>
+        {% endif %}
+    </div>
+
+    <div class="log-time-section">
+        <h2>Lançar Tempo Diário (Acesso Restrito)</h2>
+        <form method="POST" action="" class="log-time-form">
+            {{ form.hidden_tag() }}
+            <div class="form-row">
+                <div class="form-group">
+                    {{ form.user_id.label }}
+                    {{ form.user_id(class="form-control") }}
+                </div>
+                <div class="form-group">
+                    {{ form.time_str.label }}
+                    {{ form.time_str(class="form-control", placeholder="Ex: 01:35") }}
+                </div>
+                <div class="form-group">
+                    {{ form.manager_password.label }}
+                    {{ form.manager_password(class="form-control") }}
+                </div>
+            </div>
+            {{ form.submit(class="btn btn-primary") }}
+        </form>
+    </div>
+</div>
+{% endblock %}

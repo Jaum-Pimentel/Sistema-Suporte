@@ -1,0 +1,29 @@
+# Ambiente Virtual
+venv/
+*.venv/
+env/
+
+# Arquivos de cache do Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Banco de dados SQLite
+*.db
+*.sqlite
+*.sqlite3
+
+# Arquivos de IDE (ex: VS Code)
+.vscode/
+
+# Arquivos de upload (imagens que os usuários subiram)
+static/uploads/
+
+# Arquivos de migração (exceto o principal)
+# (Vamos manter as migrações, mas se quisesse ignorar, adicionaria /migrations/)
+
+# Arquivos de senhas (MUITO IMPORTANTE!)
+# Se você criar um arquivo .env para suas senhas, adicione-o aqui:
+.env
+*.env

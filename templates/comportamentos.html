@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <h1>{{ title }}</h1>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}{% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}{% endif %}
+    {% endwith %}
+
+    <div class="toggle-form-container">
+        <button id="toggle-form" class="action-btn resolve-btn">
+            <i class="fa-solid fa-plus"></i> Adicionar Comportamento
+        </button>
+    </div>
+    <div id="add-form-container" class="log-time-form" style="margin-bottom: 2rem; display: none;">
+        <h2>Adicionar Novo Comportamento</h2>
+        <form method="POST" action="{{ url_for('listar_comportamentos') }}">
+            {{ form.hidden_tag() }}
+            <div class="form-group">{{ form.titulo.label(class="form-label") }} {{ form.titulo(class="form-control") }}</div>
+            <div class="form-group">{{ form.categoria.label(class="form-label") }} {{ form.categoria(class="form-control") }}</div>
+            <div class="form-group">{{ form.conteudo.label(class="form-label") }} {{ form.conteudo(class="form-control", rows=10) }}</div>
+            {{ form.submit(class="btn btn-primary") }}
+        </form>
+    </div>
+
+    <hr style="border-color: #3a3a5a; margin: 2rem 0;">
+
+    <div class="history-header">
+        <h2>Comportamentos Publicados</h2>
+        <form method="GET" action="{{ url_for('listar_comportamentos') }}" class="filter-form">
+            <div class="filter-group">
+                <select name="categoria" class="form-control">
+                    <option value="">Todas as Categorias</option>
+                    {% for cat in categorias %}
+                    <option value="{{ cat }}" {% if cat == current_category %}selected{% endif %}>{{ cat }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <input type="search" name="q" class="form-control" placeholder="Filtrar por título..." value="{{ q or '' }}">
+            </div>
+            <div class="filter-group">
+                <button type="submit" class="btn-search"><i class="fa-solid fa-search"></i> Buscar</button>
+                
+                {% if q or current_category %}
+                    <a href="{{ url_for('listar_comportamentos') }}" class="btn-clear">Limpar</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+    
+    <div class="guias-grid" style="margin-top: 1.5rem;">
+    {% for comp in comportamentos %}
+    <div class="guia-card"> {# Pode renomear para 'comportamento-card' se quiser mais clareza #}
+        <div class="guia-header"> {# Pode renomear para 'comportamento-header' #}
+            <div class="guia-header-info"> {# Pode renomear #}
+                <h3>{{ comp.titulo }}</h3>
+                <div class="guia-meta"> {# Pode renomear #}
+                    <small>Por: {{ comp.author.name if comp.author else 'N/A' }} em {{ comp.created_at.strftime('%d/%m/%Y') }}</small>
+                    {# Movido categoria para header-actions para mais espaço #}
+                </div>
+            </div>
+
+            <div class="guia-header-actions"> {# Reutiliza a classe ou cria 'comportamento-header-actions' #}
+                
+                {# Badge de Categoria aqui #}
+                 <span class="categoria-badge">{{ comp.categoria }}</span>
+
+                {# Ícone Editar #}
+                <a href="{{ url_for('editar_comportamento', comportamento_id=comp.id) }}" class="guia-action-icon edit-icon" title="Editar Comportamento">
+                    <i class="fa-solid fa-pencil"></i>
+                </a>
+                
+                {# Ícone Apagar (dentro do form) #}
+                <form method="POST" action="{{ url_for('deletar_comportamento', comportamento_id=comp.id) }}" onsubmit="return confirm('Tem certeza que deseja apagar este comportamento?');" class="guia-action-form">
+                    <button type="submit" class="guia-action-icon delete-icon" title="Apagar Comportamento">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </form>
+                
+                 {# Ícone Expandir/Recolher #}
+                <i class="fa-solid fa-chevron-down expand-icon"></i>
+            </div>
+            </div>
+        <div class="guia-body"> {# Pode renomear #}
+            <div class="guia-content"> {# Pode renomear #}
+                {# Considerar usar render_markdown aqui também se o conteúdo puder ter formatação #}
+                <pre>{{ comp.conteudo }}</pre> 
+            </div>
+             {# Ações foram movidas para o header #}
+        </div>
+    </div>
+    {% else %}
+    <p>Nenhum comportamento encontrado para os filtros selecionados.</p>
+    {% endfor %}
+</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }} {# Mantém scripts do base.html #}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // === SCRIPT ATUALIZADO PARA EXPANDIR/RECOLHER (ACCORDION) ===
+    const comportamentosContainer = document.querySelector('.guias-grid'); // Ou '.comportamentos-grid' se renomear
+    
+    if (comportamentosContainer) {
+        comportamentosContainer.addEventListener('click', (event) => {
+            const header = event.target.closest('.guia-header'); // Ou '.comportamento-header'
+            if (!header) return;
+
+            // Impede que clicar nos ícones de ação acione o accordion
+            if (event.target.closest('.guia-action-icon')) { // Reutiliza a classe de ícone
+                return; 
+            }
+
+            const currentCard = header.closest('.guia-card'); // Ou '.comportamento-card'
+            if (!currentCard) return;
+
+            const wasActive = currentCard.classList.contains('active');
+
+            // 1. Fecha TODOS os cards abertos
+            comportamentosContainer.querySelectorAll('.guia-card.active').forEach(activeCard => {
+                activeCard.classList.remove('active');
+            });
+
+            // 2. Abre o card clicado SOMENTE se ele não estava ativo antes
+            if (!wasActive) {
+                currentCard.classList.add('active');
+            }
+        });
+    } else {
+        console.warn("Container dos comportamentos não encontrado para o script accordion.");
+    }
+    // === FIM DO SCRIPT ACCORDION ===
+
+
+    // Script para mostrar/esconder o formulário de adição (sem alterações)
+    const toggleBtn = document.getElementById('toggle-form'); // ID original era 'toggle-form'
+    const addFormContainer = document.getElementById('add-form-container');
+    if (toggleBtn && addFormContainer) {
+        toggleBtn.addEventListener('click', () => {
+            const isHidden = addFormContainer.style.display === 'none' || addFormContainer.style.display === '';
+            if (isHidden) {
+                addFormContainer.style.display = 'block';
+                toggleBtn.innerHTML = '<i class="fa-solid fa-minus"></i> Fechar Formulário';
+            } else {
+                addFormContainer.style.display = 'none';
+                toggleBtn.innerHTML = '<i class="fa-solid fa-plus"></i> Adicionar Comportamento';
+            }
+        });
+    }
+
+    // Não há script de upload de imagem aqui (a menos que você adicione futuramente)
+
+});
+</script>
+{% endblock %}

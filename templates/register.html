@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Registro{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css"> 
+{% endblock %}
+
+{% block content %}
+<div class="reg-form-container">
+    <div class="reg-form-box"> 
+        <div class="reg-form-header">
+            <h2>Criar Acesso ✨</h2>
+            <p>Preencha seus dados para começar.</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div> 
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+
+            <div class="reg-form-grid">
+                <div class="reg-form-column">
+                    <div class="reg-input-group">
+                        {{ form.name.label }}
+                        <span class="reg-icon"><i class="fa-solid fa-address-card"></i></span>
+                        {{ form.name(placeholder="Seu nome completo", autocomplete="name", class="reg-form-control") }}
+                        {% if form.name.errors %}<span class="reg-error-text">{{ form.name.errors[0] }}</span>{% endif %}
+                    </div>
+                    <div class="reg-input-group">
+                        {{ form.username.label }}
+                         <span class="reg-icon"><i class="fa-solid fa-user"></i></span>
+                        {{ form.username(placeholder="Escolha um login", autocomplete="username", class="reg-form-control") }}
+                        {% if form.username.errors %}<span class="reg-error-text">{{ form.username.errors[0] }}</span>{% endif %}
+                    </div>
+                    <div class="reg-input-group">
+                        {{ form.email.label }}
+                        <span class="reg-icon"><i class="fa-solid fa-envelope"></i></span>
+                        {{ form.email(placeholder="seu@email.com", autocomplete="email", class="reg-form-control") }}
+                        {% if form.email.errors %}<span class="reg-error-text">{{ form.email.errors[0] }}</span>{% endif %}
+                    </div>
+                </div>
+
+                <div class="reg-form-column">
+                    <div class="reg-input-group">
+                        <div class="reg-label-with-tooltip">
+                            {{ form.discord_id.label }}
+                            <div class="reg-tooltip">
+                                <i class="fa-solid fa-circle-info reg-tooltip-icon"></i>
+                                <div class="reg-tooltip-content">
+                                    <h4>Como encontrar seu ID do Discord:</h4>
+                                    <ol>
+                                        <li>No Discord, vá em <strong>Config. de Usuário</strong> <i class="fa-solid fa-gear"></i>.</li>
+                                        <li>No menu, clique em <strong>Avançado</strong>.</li>
+                                        <li>Ative o <strong>Modo de Desenvolvedor</strong>.</li>
+                                        <li>Feche as configurações.</li>
+                                        <li>Clique com o botão direito no seu nome e <strong>"Copiar ID do Usuário"</strong>.</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                         <span class="reg-icon"><i class="fa-brands fa-discord"></i></span>
+                        {{ form.discord_id(placeholder="Ex: 123456789012345678", class="reg-form-control") }}
+                        {% if form.discord_id.errors %}<span class="reg-error-text">{{ form.discord_id.errors[0] }}</span>{% endif %}
+                    </div>
+                    <div class="reg-input-group">
+                        {{ form.password.label }}
+                        <span class="reg-icon"><i class="fa-solid fa-lock"></i></span>
+                        {{ form.password(id="password-field-reg", placeholder="Mínimo 6 caracteres", autocomplete="new-password", class="reg-form-control") }}
+                         <span class="reg-password-toggle"><i class="fa-solid fa-eye" id="password-toggle-icon-reg"></i></span>
+                         {% if form.password.errors %}<span class="reg-error-text">{{ form.password.errors[0] }}</span>{% endif %}
+                    </div>
+                    <div class="reg-input-group">
+                        {{ form.confirm_password.label }}
+                        <span class="reg-icon"><i class="fa-solid fa-lock"></i></span>
+                        {{ form.confirm_password(id="confirm-password-field-reg", placeholder="Confirme a senha", autocomplete="new-password", class="reg-form-control") }}
+                        <span class="reg-password-toggle"><i class="fa-solid fa-eye" id="confirm-password-toggle-icon-reg"></i></span>
+                        {% if form.confirm_password.errors %}<span class="reg-error-text">{{ form.confirm_password.errors[0] }}</span>{% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="reg-form-actions">
+                {{ form.submit(class="reg-submit-btn") }}
+            </div>
+             <a href="{{ url_for('login') }}" class="reg-switch-form-link">Já tenho uma conta? Entrar</a>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }} <script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Função auxiliar para configurar o toggle
+    function setupPasswordToggle(inputId, iconId) {
+        const passwordField = document.getElementById(inputId);
+        const toggleIcon = document.getElementById(iconId);
+        const toggleButton = toggleIcon ? toggleIcon.parentElement : null; 
+
+        if (passwordField && toggleButton) {
+            toggleButton.addEventListener('click', function() {
+                const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordField.setAttribute('type', type);
+                
+                if (type === 'password') {
+                    toggleIcon.classList.remove('fa-eye-slash');
+                    toggleIcon.classList.add('fa-eye');
+                } else {
+                    toggleIcon.classList.remove('fa-eye');
+                    toggleIcon.classList.add('fa-eye-slash');
+                }
+            });
+        }
+    }
+
+    // Configura para ambos os campos de senha
+    setupPasswordToggle('password-field-reg', 'password-toggle-icon-reg');
+    setupPasswordToggle('confirm-password-field-reg', 'confirm-password-toggle-icon-reg');
+});
+</script>
+{% endblock %}

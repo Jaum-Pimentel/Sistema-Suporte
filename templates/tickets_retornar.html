@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="content-padding">
+    <div class="fila-header">
+        <h1>{{ title }}</h1>
+    </div>
+
+    <div class="filter-bar">
+        <input type="text" id="ticketFilter" placeholder="Filtrar por descrição do ticket...">
+    </div>
+
+    {% include 'includes/_flash_messages.html' %}
+
+    <div class="follow-up-container">
+        <div class="follow-up-section">
+            <h2>Aguardando Resolução</h2>
+            {% if abertos %}
+                <ul class="ticket-list">
+                    {% for follow_up in abertos %}
+                    <li class="ticket-item" data-filter-text="{{ follow_up.ticket.description | lower }}">
+                        <div class="ticket-content">
+                            <p class="ticket-description">{{ follow_up.ticket.description }}</p>
+                            <div class="ticket-links">
+                                <a href="{{ follow_up.ticket.link }}" target="_blank" rel="noopener noreferrer" class="ticket-link">Ver ticket original</a>
+                                <a href="{{ follow_up.return_link }}" target="_blank" rel="noopener noreferrer" class="ticket-link return">Ver link de retorno</a>
+                            </div>
+                            <small class="ticket-timestamp">Aberto em: {{ follow_up.ticket.created_at.strftime('%d/%m/%Y às %H:%M') }}</small>
+                        </div>
+                        <div class="ticket-actions">
+                            <form method="POST" action="{{ url_for('remover_acompanhamento', followup_id=follow_up.id) }}" onsubmit="return confirm('Tem certeza que deseja remover este acompanhamento?');">
+                                <button type="submit" class="action-btn-icon btn--danger" title="Remover Acompanhamento">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="placeholder-text">Você не está acompanhando nenhum ticket que ainda esteja aberto.</p>
+            {% endif %}
+        </div>
+
+        <div class="follow-up-section">
+            <h2>Resolvidos para Retornar</h2>
+            {% if resolvidos %}
+                 <ul class="ticket-list">
+                    {% for follow_up in resolvidos %}
+                        {% if not follow_up.notified_seen %}
+                        <li class="ticket-item resolved" data-filter-text="{{ follow_up.ticket.description | lower }}">
+                            <div class="ticket-content">
+                                <p class="ticket-description">{{ follow_up.ticket.description }}</p>
+                                <div class="ticket-links">
+                                    <a href="{{ follow_up.ticket.link }}" target="_blank" rel="noopener noreferrer" class="ticket-link">Ver ticket original</a>
+                                    <a href="{{ follow_up.return_link }}" target="_blank" rel="noopener noreferrer" class="ticket-link return">Ver link de retorno</a>
+                                </div>
+                                <small class="ticket-timestamp">Resolvido! Pronto para dar retorno.</small>
+                            </div>
+                            <div class="ticket-actions">
+                                <form method="POST" action="{{ url_for('mark_followup_seen', followup_id=follow_up.id) }}">
+                                    <button type="submit" class="action-btn-icon btn--success" title="Marcar como Retornado">
+                                        <i class="fa-solid fa-user-check"></i>
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ url_for('remover_acompanhamento', followup_id=follow_up.id) }}" onsubmit="return confirm('Tem certeza que deseja remover este acompanhamento?');">
+                                    <button type="submit" class="action-btn-icon btn--danger" title="Remover Acompanhamento">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            {% else %}
+                 <p class="placeholder-text">Nenhum ticket resolvido aguardando seu retorno.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const filterInput = document.getElementById('ticketFilter');
+    if (filterInput) {
+        filterInput.addEventListener('keyup', function() {
+            const filterText = this.value.toLowerCase();
+            document.querySelectorAll('.ticket-item').forEach(function(item) {
+                const itemText = item.dataset.filterText;
+                if (itemText.includes(filterText)) {
+                    item.style.display = ''; /* Mostra o item */
+                } else {
+                    item.style.display = 'none'; /* Esconde o item */
+                }
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="content-padding">
+    <div class="fila-header">
+        <h1>{{ title }}</h1>
+        <a href="{{ url_for('create_reminder') }}" class="config-btn">Agendar Lembrete</a>
+    </div>
+
+    {% include 'includes/_flash_messages.html' %}
+
+    <div id="duplicateModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-btn" id="closeDuplicateModal">&times;</span>
+            <h2>Reagendar Lembrete</h2>
+            <p>Selecione a nova data e hora para este lembrete.</p>
+            
+            <form id="duplicateForm" method="POST" action="">
+                <div class="form-group" style="margin-top: 20px;">
+                    <label for="new_datetime" class="form-label">Nova Data e Hora:</label>
+                    <input type="datetime-local" id="new_datetime" name="new_datetime" class="form-control" required>
+                </div>
+                
+                <div class="modal-actions" style="margin-top: 20px;">
+                    <button type="button" id="cancelDuplicateBtn" class="btn btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar Cópia</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="reminders-section">
+        
+        <h2 class="section-title-with-tooltip">
+            <span><i class="fa-solid fa-hourglass-half" style="margin-right: 10px; font-size: 0.9em;"></i>Próximos Lembretes</span>
+            <div class="menu-tooltip" style="margin-left: 10px; position: relative; top: -2px;">
+                <i class="fa-solid fa-circle-info tooltip-icon"></i>
+                <span class="tooltip-content" style="width: 600px; left: 70%; white-space: normal;">
+                    Estes lembretes ainda não foram enviados. O bot irá te notificar no Discord na data e hora agendada.
+                </span>
+            </div>
+        </h2>
+        {% if upcoming %}
+            <ul class="reminder-list">
+            {% for rem in upcoming %}
+                <li class="reminder-card">
+                    <form method="POST" action="{{ url_for('delete_reminder', reminder_id=rem.id) }}" class="delete-reminder-form">
+                        <button type="submit" class="delete-btn" title="Remover Lembrete">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </form>
+
+                    <button type="button" class="action-btn duplicate-btn" title="Duplicar/Reagendar"
+                            data-reminder-id="{{ rem.id }}">
+                        <i class="fa-solid fa-clone"></i>
+                    </button>
+                    
+                    <div class="reminder-card-content">
+                        <strong>Tipo:</strong> {{ rem.reminder_type }} <br>
+                        <strong>Data:</strong> {{ rem.reminder_datetime.strftime('%d/%m/%Y às %H:%M') }} <br>
+                        {% if rem.description %}
+                            <strong>Descrição:</strong> {{ rem.description }} <br>
+                        {% endif %}
+                        {% if rem.link %}
+                            <strong>Link:</strong> <a href="{{ rem.link }}" target="_blank" class="reminder-link">Acessar</a>
+                        {% endif %}
+                    </div>
+                </li>
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p class="placeholder-text">Nenhum lembrete futuro agendado.</p>
+        {% endif %}
+    </div>
+
+    <div class="reminders-section">
+        <h2>Lembretes Passados</h2>
+        {% if past %}
+            <ul class="reminder-list past">
+            {% for rem in past %}
+                <li class="reminder-card">
+                    <form method="POST" action="{{ url_for('delete_reminder', reminder_id=rem.id) }}" class="delete-reminder-form">
+                        <button type="submit" class="delete-btn" title="Remover Lembrete">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </form>
+                    
+                    <button type="button" class="action-btn duplicate-btn" title="Duplicar/Reagendar"
+                            data-reminder-id="{{ rem.id }}">
+                        <i class="fa-solid fa-clone"></i>
+                    </button>
+
+                    <div class="reminder-card-content">
+                        <strong>Tipo:</strong> {{ rem.reminder_type }} <br>
+                        <strong>Data:</strong> {{ rem.reminder_datetime.strftime('%d/%m/%Y às %H:%M') }} <br>
+                        {% if rem.notification_status %}
+                            <strong>Status:</strong> 
+                            <span style="color: {% if 'Sucesso' in rem.notification_status %}#28a745{% else %}#dc3545{% endif %}; font-weight: bold;">
+                                {{ rem.notification_status }}
+                            </span> <br>
+                        {% endif %}
+                        {% if rem.description %}
+                            <strong>Descrição:</strong> {{ rem.description }} <br>
+                        {% endif %}
+                        {% if rem.link %}
+                            <strong>Link:</strong> <a href="{{ rem.link }}" target="_blank" class="reminder-link">Acessar</a>
+                        {% endif %}
+                    </div>
+                </li>
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p class="placeholder-text">Nenhum lembrete no histórico.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }} {# Mantém scripts do base.html, se houver #}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // --- Script de Confirmação de Deleção (Seu código existente) ---
+    const deleteForms = document.querySelectorAll('.delete-reminder-form');
+    deleteForms.forEach(form => {
+        form.addEventListener('submit', function(event) {
+            const confirmed = confirm('Você tem certeza que deseja remover este lembrete?');
+            if (!confirmed) {
+                event.preventDefault(); // Cancela o envio
+            }
+        });
+    });
+
+    // --- SCRIPT PARA MODAL DE DUPLICAÇÃO (Sem alteração) ---
+    const duplicateModal = document.getElementById('duplicateModal');
+    const duplicateForm = document.getElementById('duplicateForm');
+    const newDatetimeInput = document.getElementById('new_datetime');
+    const closeDuplicateModalBtn = document.getElementById('closeDuplicateModal');
+    const cancelDuplicateBtn = document.getElementById('cancelDuplicateBtn');
+    const duplicateBtns = document.querySelectorAll('.duplicate-btn');
+
+    function closeDuplicateModal() {
+        if (duplicateModal) duplicateModal.style.display = 'none';
+    }
+
+    duplicateBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const reminderId = this.dataset.reminderId;
+            if (duplicateForm) {
+                duplicateForm.action = `/reminder/duplicate/${reminderId}`;
+            }
+            if (newDatetimeInput) {
+                newDatetimeInput.value = '';
+            }
+            if (duplicateModal) {
+                duplicateModal.style.display = 'block';
+                if (newDatetimeInput) newDatetimeInput.focus();
+            }
+        });
+    });
+
+    if (closeDuplicateModalBtn) closeDuplicateModalBtn.onclick = closeDuplicateModal;
+    if (cancelDuplicateBtn) cancelDuplicateBtn.onclick = closeDuplicateModal;
+    
+    window.onclick = function(event) {
+        if (event.target == duplicateModal) {
+            closeDuplicateModal();
+        }
+    }
+});
+</script>
+{% endblock %}

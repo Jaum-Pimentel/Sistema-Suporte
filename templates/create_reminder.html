@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="content-padding">
+    <h1>{{ title }}</h1>
+
+    {% include 'includes/_flash_messages.html' %}
+
+    <form method="POST" action="{{ url_for('create_reminder') }}" class="kanban-form">
+        <div class="form-group">
+            <label for="reminder_type">Tipo de Lembrete</label>
+            <select name="reminder_type" id="reminder_type" class="form-control" required>
+                <option value="" disabled selected>-- Selecione uma opção --</option>
+                <option value="Enviar proativo">Enviar proativo</option>
+                <option value="Analisar comportamento">Analisar comportamento</option>
+                <option value="Abrir ticket">Abrir ticket</option>
+                <option value="Outros">Outros</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="reminder_datetime">Data e Hora do Lembrete</label>
+            <input type="datetime-local" id="reminder_datetime" name="reminder_datetime" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Descrição</label>
+            <textarea name="description" id="description" rows="3" class="form-control"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="link">Link (Opcional)</label>
+            <input type="url" name="link" id="link" class="form-control" placeholder="https://...">
+        </div>
+
+        <button type="submit" class="atender-btn">Agendar</button>
+        <a href="{{ url_for('list_reminders') }}" class="cancel-btn">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

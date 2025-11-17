@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="welcome-container">
+    <h1>Bem-vindo, {{ current_user.name }}!</h1>
+    <p>Você está logado no Sistema de Suporte.</p>
+    <a href="{{ url_for('logout') }}" class="logout-link">Sair</a>
+</div>
+{% endblock %}

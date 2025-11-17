@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="kanban-header">
+    <h1>{{ title }}</h1>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flash-container">
+        {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<div class="kanban-board">
+    {% for column in columns %}
+    <div class="kanban-column" data-column-id="{{ column.id }}">
+        <h3 class="column-title">{{ column.name }}</h3>
+        <div class="column-cards" id="column-{{ column.id }}">
+            {% for card in cards if card.column_id == column.id %}
+                <div class="kanban-card status-{{ card.status }}" draggable="true" data-card-id="{{ card.id }}">
+                    {% if card.base %}<strong>{{ card.base }}</strong>{% endif %}
+                    <p>{{ card.title|truncate(100, True) }}</p>
+                </div>
+            {% endfor %}
+        </div>
+        <button class="add-card-btn" data-column-id="{{ column.id }}">Adicionar Ticket</button>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- ======================= MODAIS ======================= -->
+
+<!-- Modal para Adicionar/Editar Card -->
+<div id="cardModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <h2 id="modalTitle">Novo Ticket</h2>
+        <form id="cardForm" method="POST">
+            {{ form.hidden_tag() }} <!-- Proteção CSRF -->
+            <div class="input-group">
+                {{ form.base.label }}
+                {{ form.base }}
+            </div>
+            <div class="input-group">
+                {{ form.title.label }}
+                {{ form.title(required=true) }}
+            </div>
+            <div class="input-group">
+                {{ form.content.label }}
+                {{ form.content }}
+            </div>
+            <div class="input-group">
+                {{ form.link.label }}
+                {{ form.link }}
+            </div>
+            <div class="input-group">
+                {{ form.status.label }}
+                {{ form.status }}
+            </div>
+            {{ form.submit(class="submit-btn") }}
+        </form>
+    </div>
+</div>
+
+<!-- Modal para Visualizar Card -->
+<div id="viewCardModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <h2 id="viewCardBase"></h2>
+        <p id="viewCardTitle"></p>
+        <p id="viewCardContent"></p>
+        <a id="viewCardLink" href="#" target="_blank" rel="noopener noreferrer"></a>
+        <div class="modal-actions">
+            <button id="editCardBtn" class="action-btn">Editar</button>
+            <button id="deleteCardBtn" class="action-btn">Deletar</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Importa a biblioteca SortableJS que baixamos -->
+<script src="{{ url_for('static', filename='js/sortable.min.js') }}"></script>
+
+<!-- Nosso script customizado para toda a mágica -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // ======================= LÓGICA DO MENU SANFONA (ACCORDION) =======================
+    const submenuToggle = document.querySelector('.has-submenu > a');
+    if (submenuToggle) {
+        submenuToggle.addEventListener('click', function(event) {
+            event.preventDefault();
+            this.parentElement.classList.toggle('active');
+        });
+        if (window.location.pathname.includes('/kanban/')) {
+            submenuToggle.parentElement.classList.add('active');
+        }
+    }
+
+    // ======================= LÓGICA DOS MODAIS =======================
+    const cardModal = document.getElementById('cardModal');
+    const viewCardModal = document.getElementById('viewCardModal');
+    const closeBtns = document.querySelectorAll('.close-btn');
+
+    function closeModal() {
+        cardModal.style.display = 'none';
+        viewCardModal.style.display = 'none';
+    }
+
+    closeBtns.forEach(btn => btn.onclick = closeModal);
+    window.onclick = function(event) {
+        if (event.target == cardModal || event.target == viewCardModal) {
+            closeModal();
+        }
+    }
+
+    // --- Abrir modal para CRIAR um novo card ---
+    document.querySelectorAll('.add-card-btn').forEach(button => {
+        button.onclick = function() {
+            const columnId = this.dataset.columnId;
+            const form = document.getElementById('cardForm');
+            form.action = `/card/new/${columnId}/{{ board_type }}`;
+            document.getElementById('modalTitle').innerText = 'Novo Ticket';
+            form.reset();
+            cardModal.style.display = 'block';
+        }
+    });
+
+    // --- Abrir modal para VER detalhes de um card ---
+    document.querySelectorAll('.kanban-card').forEach(card => {
+        card.addEventListener('click', function() {
+            const cardId = this.dataset.cardId;
+            fetch(`/card/details/${cardId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error); return;
+                    }
+                    document.getElementById('viewCardBase').innerText = data.base || 'Sem Base';
+                    document.getElementById('viewCardTitle').innerText = data.title;
+                    document.getElementById('viewCardContent').innerText = data.content || '';
+                    const linkEl = document.getElementById('viewCardLink');
+                    if (data.link) {
+                        linkEl.href = data.link;
+                        linkEl.innerText = 'Acessar Link';
+                        linkEl.style.display = 'block';
+                    } else {
+                        linkEl.style.display = 'none';
+                    }
+                    // Guarda o ID do card nos botões de ação
+                    document.getElementById('editCardBtn').dataset.cardId = cardId;
+                    document.getElementById('deleteCardBtn').dataset.cardId = cardId;
+                    viewCardModal.style.display = 'block';
+                });
+        });
+    });
+
+    // --- Lógica do botão EDITAR ---
+    document.getElementById('editCardBtn').addEventListener('click', function() {
+        const cardId = this.dataset.cardId;
+        fetch(`/card/details/${cardId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error); return;
+                }
+                // Preenche o formulário com os dados do card
+                const form = document.getElementById('cardForm');
+                form.action = `/card/edit/${cardId}`;
+                document.getElementById('modalTitle').innerText = 'Editar Ticket';
+                form.base.value = data.base || '';
+                form.title.value = data.title || '';
+                form.content.value = data.content || '';
+                form.link.value = data.link || '';
+                form.status.value = data.status || 'pendente';
+                
+                // Fecha o modal de visualização e abre o de edição
+                viewCardModal.style.display = 'none';
+                cardModal.style.display = 'block';
+            });
+    });
+
+    // --- Lógica do botão DELETAR ---
+    document.getElementById('deleteCardBtn').addEventListener('click', function() {
+        const cardId = this.dataset.cardId;
+        if (confirm('Tem certeza que deseja deletar este ticket?')) {
+            fetch(`/card/delete/${cardId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert('Erro ao deletar o ticket.');
+                }
+            });
+        }
+    });
+
+    // ======================= LÓGICA DO DRAG-AND-DROP =======================
+    const columns = document.querySelectorAll('.column-cards');
+    columns.forEach(column => {
+        new Sortable(column, {
+            group: 'kanban',
+            animation: 150,
+            ghostClass: 'card-ghost',
+            onEnd: function (evt) {
+                const cardId = evt.item.dataset.cardId;
+                const newColumnId = evt.to.closest('.kanban-column').dataset.columnId;
+                
+                fetch('/card/move', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        card_id: cardId,
+                        new_column_id: newColumnId,
+                    }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        alert('Ocorreu um erro ao mover o ticket.');
+                    }
+                });
+            },
+        });
+    });
+});
+</script>
+{% endblock %}
+

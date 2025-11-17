@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <h1>{{ title }}</h1>
+        <a href="{{ url_for('minhas_metas') }}" class="btn btn-back"> &larr; Voltar para Minhas Metas</a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}{% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}{% endif %}
+    {% endwith %}
+
+    <div class="manager-panel">
+        <ul class="manager-panel__nav">
+            <li><a href="#" class="manager-panel__tab {% if active_tab == 'individual' or not active_tab %}manager-panel__tab--active{% endif %}" data-tab="individual"><i class="fa-solid fa-user"></i> Individual</a></li>
+            <li><a href="#" class="manager-panel__tab {% if active_tab == 'massa' %}manager-panel__tab--active{% endif %}" data-tab="massa"><i class="fa-solid fa-users"></i> Em Massa</a></li>
+            <li><a href="#" class="manager-panel__tab {% if active_tab == 'editar' %}manager-panel__tab--active{% endif %}" data-tab="editar"><i class="fa-solid fa-pencil"></i> Editar</a></li>
+            <li><a href="#" class="manager-panel__tab {% if active_tab == 'remover' %}manager-panel__tab--active{% endif %}" data-tab="remover"><i class="fa-solid fa-trash-can"></i> Remover</a></li>
+        </ul>
+
+        <div class="manager-panel__content">
+            <div class="manager-panel__pane {% if active_tab == 'individual' or not active_tab %}manager-panel__pane--active{% endif %}" data-pane="individual">
+                <h2>Lançar Novo Tempo (Individual)</h2>
+                <form method="POST" action="{{ url_for('lancar_tempo') }}">
+                    {{ form.hidden_tag() }}
+                    <div class="form-row">
+                        <div class="form-group">{{ form.user_id.label }} {{ form.user_id(class="form-control") }}</div>
+                        <div class="form-group">{{ form.time_str.label }} {{ form.time_str(class="form-control", placeholder="Ex: 01:35") }}</div>
+                        <div class="form-group">{{ form.manager_password.label }} {{ form.manager_password(class="form-control") }}</div>
+                    </div>
+                    {{ form.submit(class="btn btn-primary") }}
+                </form>
+            </div>
+
+            <div class="manager-panel__pane {% if active_tab == 'massa' %}manager-panel__pane--active{% endif %}" data-pane="massa">
+                <h2>Lançar Tempo (Em Massa)</h2>
+                <form method="POST" action="{{ url_for('lancar_tempo_massa') }}">
+                    <div class="form-group">
+                        <label for="mass_data">Cole os dados aqui</label>
+                        <textarea name="mass_data" id="mass_data" class="form-control" rows="8" placeholder="Formato: Nome do Usuario: MM:SS; ..."></textarea>
+                        <small>Separe cada registro com um ponto e vírgula (;).</small>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="record_date_mass">Data do Registro</label>
+                            <input type="date" name="record_date_mass" id="record_date_mass" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="manager_password_mass">Senha do Gestor</label>
+                            <input type="password" name="manager_password_mass" id="manager_password_mass" class="form-control" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Lançar em Massa</button>
+                </form>
+            </div>
+
+            <div class="manager-panel__pane {% if active_tab == 'editar' %}manager-panel__pane--active{% endif %}" data-pane="editar">
+                <h2>Editar Lançamento</h2>
+                <form method="GET" action="{{ url_for('lancar_tempo') }}">
+                    <input type="hidden" name="active_tab" value="editar">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="search_user_id_edit">Selecione o Usuário</label>
+                            <select name="search_user_id" id="search_user_id_edit" class="form-control" required>
+                                <option value="">Selecione...</option>
+                                {% for user in all_users %}<option value="{{ user.id }}" {% if user.id == search_user_id %}selected{% endif %}>{{ user.name }}</option>{% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Buscar Histórico</button>
+                </form>
+                {% if search_results is defined and search_results and active_tab == 'editar' %}
+                <h3 style="margin-top: 2rem;">Histórico de {{ search_results[0].user.name }}:</h3>
+                <table class="styled-table">
+                    <thead><tr><th>Data</th><th>Tempo</th><th>Ação</th></tr></thead>
+                    <tbody>
+                        {% for record in search_results %}
+                        <tr>
+                            <td>{{ record.date_recorded.strftime('%d/%m/%Y') }}</td>
+                            <td>{{ '%02d:%02d' % (record.time_in_seconds // 60, record.time_in_seconds % 60) }}</td>
+                            <td><button class="action-btn edit-time-btn" data-record-id="{{ record.id }}" data-current-date="{{ record.date_recorded.strftime('%Y-%m-%d') }}" data-current-time="{{ '%02d:%02d' % (record.time_in_seconds // 60, record.time_in_seconds % 60) }}">Editar</button></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% elif request.args.get('search_user_id') and active_tab == 'editar' %}
+                <p style="margin-top: 2rem;">Nenhum registro encontrado.</p>
+                {% endif %}
+            </div>
+
+            <div class="manager-panel__pane {% if active_tab == 'remover' %}manager-panel__pane--active{% endif %}" data-pane="remover">
+                <h2>Remover Lançamento</h2>
+                <form method="GET" action="{{ url_for('lancar_tempo') }}">
+                    <input type="hidden" name="active_tab" value="remover">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="search_user_id_remove">Selecione o Usuário</label>
+                            <select name="search_user_id" id="search_user_id_remove" class="form-control" required>
+                                <option value="">Selecione...</option>
+                                {% for user in all_users %}<option value="{{ user.id }}" {% if user.id == search_user_id %}selected{% endif %}>{{ user.name }}</option>{% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Buscar Histórico</button>
+                </form>
+                {% if search_results is defined and search_results and active_tab == 'remover' %}
+                <h3 style="margin-top: 2rem;">Histórico de {{ search_results[0].user.name }}:</h3>
+                <table class="styled-table">
+                    <thead><tr><th>Data</th><th>Tempo</th><th>Ação</th></tr></thead>
+                    <tbody>
+                        {% for record in search_results %}
+                        <tr>
+                            <td>{{ record.date_recorded.strftime('%d/%m/%Y') }}</td>
+                            <td>{{ '%02d:%02d' % (record.time_in_seconds // 60, record.time_in_seconds % 60) }}</td>
+                            <td>
+                                <button type="button" class="action-btn delete-time-btn" data-record-id="{{ record.id }}" style="background-color: #dc3545;">Remover</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% elif request.args.get('search_user_id') and active_tab == 'remover' %}
+                <p style="margin-top: 2rem;">Nenhum registro encontrado.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="editTimeModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <h2>Editar Lançamento</h2>
+        <form id="editTimeForm" method="POST">
+            {{ edit_form.hidden_tag() }}
+            <div class="form-group">{{ edit_form.date_recorded.label }} {{ edit_form.date_recorded(class="form-control") }}</div>
+            <div class="form-group">{{ edit_form.time_str.label }} {{ edit_form.time_str(class="form-control") }}</div>
+            <div class="form-group">
+                <label for="manager_password_edit">Senha do Gestor</label>
+                <input type="password" name="manager_password" id="manager_password_edit" class="form-control" required>
+            </div>
+            {{ edit_form.submit(class="submit-btn") }}
+        </form>
+    </div>
+</div>
+
+<div id="deleteTimeModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <h2>Confirmar Remoção</h2>
+        <p>Para confirmar a remoção deste registro, por favor, insira a senha do gestor.</p>
+        <form id="deleteTimeForm" method="POST">
+            <div class="form-group">
+                <label for="manager_password_delete">Senha do Gestor</label>
+                <input type="password" name="manager_password" id="manager_password_delete" class="form-control" required>
+            </div>
+            <button type="submit" class="submit-btn" style="background-color: #dc3545;">Confirmar Remoção</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // --- LÓGICA DAS ABAS (TABS) ---
+    const tabs = document.querySelectorAll('.manager-panel__tab');
+    const panes = document.querySelectorAll('.manager-panel__pane');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function(event) {
+            event.preventDefault();
+            tabs.forEach(t => t.classList.remove('manager-panel__tab--active'));
+            panes.forEach(p => p.classList.remove('manager-panel__pane--active'));
+            const tabId = this.dataset.tab;
+            this.classList.add('manager-panel__tab--active');
+            document.querySelector(`.manager-panel__pane[data-pane="${tabId}"]`).classList.add('manager-panel__pane--active');
+        });
+    });
+
+    // --- LÓGICA DO MODAL DE EDIÇÃO ---
+    const editModal = document.getElementById('editTimeModal');
+    if (editModal) {
+        const editForm = document.getElementById('editTimeForm');
+        const closeBtn = editModal.querySelector('.close-btn');
+        document.querySelectorAll('.edit-time-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const recordId = this.dataset.recordId;
+                const currentDate = this.dataset.currentDate;
+                const currentTime = this.dataset.currentTime;
+                editForm.action = `/editar-tempo/${recordId}`;
+                editForm.querySelector('#date_recorded').value = currentDate;
+                editForm.querySelector('#time_str').value = currentTime;
+                editModal.style.display = 'block';
+            });
+        });
+        closeBtn.onclick = () => editModal.style.display = 'none';
+        window.onclick = (event) => {
+            if (event.target == editModal) editModal.style.display = 'none';
+        };
+    }
+
+    // --- LÓGICA DO MODAL DE DELEÇÃO ---
+    const deleteModal = document.getElementById('deleteTimeModal');
+    if (deleteModal) {
+        const deleteForm = document.getElementById('deleteTimeForm');
+        const closeBtn = deleteModal.querySelector('.close-btn');
+        document.querySelectorAll('.delete-time-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const recordId = this.dataset.recordId;
+                deleteForm.action = `/remover-tempo/${recordId}`;
+                deleteModal.style.display = 'block';
+                deleteForm.querySelector('#manager_password_delete').focus();
+            });
+        });
+        closeBtn.onclick = () => deleteModal.style.display = 'none';
+        window.onclick = (event) => {
+            if (event.target == deleteModal) deleteModal.style.display = 'none';
+        };
+    }
+});
+</script>
+{% endblock %}

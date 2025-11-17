@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="content-padding">
+    <div class="fila-header">
+        <h1>{{ title }}</h1>
+    </div>
+
+    <!-- Barra de Filtro e Exportação -->
+    <div class="filter-bar">
+        <form method="GET" action="{{ url_for('tickets_freshdesk') }}" class="search-form">
+            <input type="text" name="search" placeholder="Filtrar por descrição..." value="{{ search_term or '' }}">
+            <button type="submit" class="action-btn"><i class="fa-solid fa-search"></i> Filtrar</button>
+        </form>
+        <a href="{{ url_for('export_tickets', search=search_term) }}" class="action-btn export-btn">
+            <i class="fa-solid fa-file-excel"></i> Exportar para Planilha
+        </a>
+    </div>
+
+    {% include 'includes/_flash_messages.html' %}
+
+    <div class="ticket-list-container">
+        {% if tickets %}
+            <ul class="ticket-list">
+                {% for ticket in tickets %}
+                <li class="ticket-item">
+                    <div class="ticket-content">
+                        <p class="ticket-description">{{ ticket.description }}</p>
+                        <a href="{{ ticket.link }}" target="_blank" rel="noopener noreferrer" class="ticket-link">Ver ticket original</a>
+                        <small class="ticket-timestamp">Aberto em: {{ ticket.created_at.strftime('%d/%m/%Y às %H:%M') }}</small>
+                    </div>
+                    <div class="ticket-actions">
+                        <form method="POST" action="{{ url_for('resolver_ticket', ticket_id=ticket.id) }}" style="display: inline;">
+                            <button type="submit" class="action-btn resolve-btn" title="Marcar como Resolvido">
+                                <i class="fa-solid fa-check"></i> Resolver
+                            </button>
+                        </form>
+                        <button class="action-btn follow-btn" data-ticket-id="{{ ticket.id }}" title="Acompanhar para dar retorno">
+                            <i class="fa-solid fa-user-plus"></i> Acompanhar
+                        </button>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="placeholder-text">
+                {% if search_term %}
+                    <p>Nenhum ticket encontrado com a descrição "{{ search_term }}".</p>
+                {% else %}
+                    <p>Nenhum ticket aberto no momento. Tudo em ordem!</p>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal para Adicionar Acompanhamento -->
+<div id="followUpModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <h2>Acompanhar Ticket</h2>
+        <p>Insira o link do chat ou contato para dar retorno a este cliente.</p>
+        <form id="followUpForm" method="POST">
+            <div class="input-group">
+                <label for="retorno_link">Link de Retorno</label>
+                <input type="url" id="retorno_link" name="retorno_link" required placeholder="https://chat.exemplo.com/conversa/123">
+            </div>
+            <button type="submit" class="submit-btn">Salvar Acompanhamento</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const followUpModal = document.getElementById('followUpModal');
+    if (followUpModal) {
+        const followUpForm = document.getElementById('followUpForm');
+        const closeBtn = followUpModal.querySelector('.close-btn');
+
+        document.querySelectorAll('.follow-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const ticketId = this.dataset.ticketId;
+                // Define a ação do formulário do modal para a rota correta
+                followUpForm.action = `/ticket/acompanhar/${ticketId}`;
+                followUpModal.style.display = 'block';
+                document.getElementById('retorno_link').focus();
+            });
+        });
+
+        closeBtn.onclick = function() {
+            followUpModal.style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            if (event.target == followUpModal) {
+                followUpModal.style.display = 'none';
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

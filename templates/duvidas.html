@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="page-container duvidas-page-wrapper"> 
+    <div class="page-header">
+        <h1><i class="fa-solid fa-comments-question"></i> Dúvidas Frequentes</h1>
+        <p>Encontre respostas ou envie sua própria pergunta.</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-container" style="margin-bottom: 20px;">
+            {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    {% endwith %}
+
+    <div class="duvidas-actions">
+        <form method="GET" action="{{ url_for('listar_duvidas') }}" class="search-form">
+            <div class="search-input-group">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="search" name="search" class="form-control" placeholder="Buscar por título ou descrição..." value="{{ search_term or '' }}">
+            </div>
+        </form>
+        <a href="{{ url_for('nova_duvida') }}" class="btn btn-new-duvida">
+            <i class="fa-solid fa-plus"></i> Nova Dúvida
+        </a>
+    </div>
+
+    <div class="duvidas-columns-container">
+
+        <div class="duvidas-column">
+            <h3><i class="fa-solid fa-hourglass-half"></i> Dúvidas Abertas ({{ duvidas_abertas|length }})</h3>
+            <ul class="duvida-list">
+                {% for duvida in duvidas_abertas %}
+                <li class="duvida-card">
+                    <div class="duvida-card-header">
+                        <div class="duvida-card-info">
+                            <a href="{{ url_for('ver_duvida', duvida_id=duvida.id) }}" class="duvida-title-link">
+                                <h4 class="duvida-title">{{ duvida.titulo }}</h4>
+                            </a>
+                            <div class="duvida-card-header-meta">
+                                <span class="duvida-category">{{ duvida.categoria }}</span>
+                                <span class="duvida-author">
+                                    <i class="fa-solid fa-user-pen"></i> {{ duvida.author.name }}
+                                </span>
+                                <span class="duvida-date">
+                                    <i class="fa-solid fa-calendar-days"></i> {{ duvida.created_at.strftime('%d/%m/%Y') }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="duvida-header-actions">
+                          
+                            <button type="button" class="guia-action-icon delete-icon open-delete-modal-btn" 
+                                    data-duvida-id="{{ duvida.id }}" 
+                                    data-duvida-titulo="{{ duvida.titulo|truncate(50, True) }}" 
+                                    title="Apagar Dúvida">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                             <i class="fa-solid fa-chevron-down expand-icon"></i>
+                        </div>
+                        </div>
+                    <div class="duvida-card-body">
+                         <p class="duvida-body-desc">{{ duvida.descricao|truncate(150, True) }}</p>
+                         <a href="{{ url_for('ver_duvida', duvida_id=duvida.id) }}" class="duvida-ver-mais-link">
+                             Ver detalhes e respostas &rarr;
+                         </a>
+                    </div>
+                </li>
+                {% else %}
+                <li class="empty-list-message">Nenhuma dúvida aberta no momento.</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="duvidas-column">
+            <h3><i class="fa-solid fa-circle-check"></i> Dúvidas Respondidas ({{ duvidas_respondidas|length }})</h3>
+            <ul class="duvida-list">
+                {% for duvida in duvidas_respondidas %}
+                 <li class="duvida-card">
+                    <div class="duvida-card-header">
+                        <div class="duvida-card-info">
+                            <a href="{{ url_for('ver_duvida', duvida_id=duvida.id) }}" class="duvida-title-link">
+                                <h4 class="duvida-title">{{ duvida.titulo }}</h4>
+                            </a>
+                            <div class="duvida-card-header-meta">
+                                <span class="duvida-category">{{ duvida.categoria }}</span>
+                                <span class="duvida-author">
+                                    <i class="fa-solid fa-user-pen"></i> {{ duvida.author.name }}
+                                </span>
+                                <span class="duvida-date">
+                                    <i class="fa-solid fa-calendar-days"></i> {{ duvida.created_at.strftime('%d/%m/%Y') }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="duvida-header-actions">
+                           
+                            <button type="button" class="guia-action-icon delete-icon open-delete-modal-btn" 
+                                    data-duvida-id="{{ duvida.id }}" 
+                                    data-duvida-titulo="{{ duvida.titulo|truncate(50, True) }}" 
+                                    title="Apagar Dúvida">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                            <i class="fa-solid fa-chevron-down expand-icon"></i>
+                        </div>
+                    </div>
+                    <div class="duvida-card-body">
+                         <p class="duvida-body-desc">{{ duvida.descricao|truncate(150, True) }}</p>
+                         <a href="{{ url_for('ver_duvida', duvida_id=duvida.id) }}" class="duvida-ver-mais-link">
+                             Ver detalhes e respostas &rarr;
+                         </a>
+                    </div>
+                </li>
+                {% else %}
+                <li class="empty-list-message">Nenhuma dúvida respondida ainda.</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+    </div> 
+</div>
+
+<div id="deleteDuvidaModal" class="modal" style="display: none;">
+    <div class="modal-content delete-modal-content">
+        <span class="close-btn" id="close-delete-modal">&times;</span>
+        <h2>Confirmar Exclusão</h2>
+        <p>Esta ação é irreversível e irá apagar a dúvida:</p>
+        <p class="duvida-delete-title-preview"><strong><span id="delete-duvida-titulo"></span></strong></p>
+        
+        <p style="margin-top: 15px;">Para confirmar, digite <strong class="confirm-text">Remover</strong> na caixa abaixo:</p>
+        
+        <input type="text" id="delete-confirm-input" class="form-control-duvida" autocomplete="off" placeholder="Remover">
+        
+        <div class="modal-actionsss" style="margin-top: 20px;">
+            <button type="button" id="cancel-delete-btn" class="btn btn-secondary">Cancelar</button>
+            
+            <form id="delete-duvida-form" method="POST" action=""> {# Adicionando CSRF Token - Supõe que 'form' está disponível ou CSRF está global #}
+                {% if form %}{{ form.hidden_tag() }}{% endif %}
+                <button type="submit" id="confirm-delete-btn" class="btn delete-btnn" disabled>
+                    Confirmar Exclusão Permanente
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block scripts %}
+{{ super() }} <script>
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // === SCRIPT ACCORDION (para expandir/recolher corpo) ===
+    const duvidasContainer = document.querySelector('.duvidas-columns-container');
+    if (duvidasContainer) {
+        duvidasContainer.addEventListener('click', (event) => {
+            const header = event.target.closest('.duvida-card-header'); // Mudança: escuta clique no header do card
+            if (!header) return; 
+
+            // Impede que clicar nos ícones de ação acione o accordion
+            if (event.target.closest('.guia-action-icon')) {
+                event.stopPropagation();
+                return; 
+            }
+
+            const currentCard = header.closest('.duvida-card');
+            if (!currentCard) return;
+
+            const wasActive = currentCard.classList.contains('active');
+
+            // 1. Fecha TODOS os cards abertos
+            duvidasContainer.querySelectorAll('.duvida-card.active').forEach(activeCard => {
+                activeCard.classList.remove('active'); 
+            });
+
+            // 2. Abre o card clicado SOMENTE se ele não estava ativo antes
+            if (!wasActive) {
+                currentCard.classList.add('active');
+            }
+        });
+    } else {
+        console.warn("Container '.duvidas-columns-container' não encontrado para o script accordion.");
+    }
+
+
+    // === LÓGICA DO MODAL DE EXCLUSÃO DE DÚVIDA ===
+    const deleteModal = document.getElementById('deleteDuvidaModal');
+    const openModalBtns = document.querySelectorAll('.open-delete-modal-btn');
+    const closeModalBtn = document.getElementById('close-delete-modal');
+    const cancelModalBtn = document.getElementById('cancel-delete-btn');
+    const confirmInput = document.getElementById('delete-confirm-input');
+    const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+    const deleteForm = document.getElementById('delete-duvida-form');
+    const duvidaTituloSpan = document.getElementById('delete-duvida-titulo');
+    const requiredText = "Remover"; 
+
+    // Abrir o modal
+    openModalBtns.forEach(btn => {
+        btn.addEventListener('click', function(event) {
+            event.stopPropagation(); 
+            
+            const duvidaId = this.dataset.duvidaId;
+            const duvidaTitulo = this.dataset.duvidaTitulo;
+            
+            if (duvidaTituloSpan) {
+                duvidaTituloSpan.textContent = duvidaTitulo;
+            }
+            if (deleteForm) {
+                // ==========================================================
+                // === CORREÇÃO DA URL AQUI ===
+                // A URL deve ser construída manualmente com as barras corretas
+                deleteForm.action = `/duvidas/deletar/${duvidaId}`;
+                // ==========================================================
+            }
+            if (confirmInput) {
+                confirmInput.value = ""; 
+            }
+            if (confirmDeleteBtn) {
+                confirmDeleteBtn.disabled = true; 
+            }
+            if (deleteModal) {
+                deleteModal.style.display = 'block';
+                if (confirmInput) confirmInput.focus(); 
+            }
+        });
+    });
+
+    // Fechar o modal (nos botões X e Cancelar)
+    function closeDeleteModal() {
+        if (deleteModal) {
+            deleteModal.style.display = 'none';
+        }
+    }
+    if (closeModalBtn) closeModalBtn.onclick = closeDeleteModal;
+    if (cancelModalBtn) cancelModalBtn.onclick = closeDeleteModal;
+
+    // Lógica de validação do input para habilitar o botão
+    if (confirmInput && confirmDeleteBtn) {
+        confirmInput.addEventListener('input', function() {
+            if (confirmInput.value === requiredText) {
+                confirmDeleteBtn.disabled = false;
+            } else {
+                confirmDeleteBtn.disabled = true;
+            }
+        });
+    }
+    
+    // Fechar modal clicando fora da caixa
+    window.addEventListener('click', function(event) {
+        if (event.target == deleteModal) {
+            closeDeleteModal();
+        }
+    });
+    // --- FIM LÓGICA MODAL ---
+});
+</script>
+{% endblock %}

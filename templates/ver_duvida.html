@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="page-container duvida-detalhe-wrapper"> 
+    
+    <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;color: aliceblue; ">
+        <h1>{{ duvida.titulo }}</h1>
+        <a href="{{ url_for('listar_duvidas') }}" class="btn-clear-duvida" style="white-space: nowrap;"> 
+            <i class="fa-solid fa-arrow-left"></i> Voltar para Dúvidas
+        </a>
+    </div>
+
+    <div class="duvida-box">
+        <div class="duvida-header">
+            <div class="duvida-meta">
+                <span class="duvida-author" title="Autor da Dúvida">
+                    <i class="fa-solid fa-user-pen"></i>
+                    <strong>Enviada por:</strong> {{ duvida.author.name if duvida.author else 'Desconhecido' }}
+                </span>
+                <span class="duvida-date" title="Data de Criação">
+                    <i class="fa-solid fa-calendar-days"></i>
+                    <strong>Em:</strong> {{ duvida.created_at.strftime('%d/%m/%Y às %H:%M') }}
+                </span>
+                <span class="duvida-category" title="Categoria">
+                    <i class="fa-solid fa-tag"></i>
+                    <strong>Categoria:</strong> {{ duvida.categoria }}
+                </span>
+            </div>
+        </div>
+        <div class="duvida-body">
+            <h3 class="section-title">Descrição Completa da Dúvida</h3>
+            <div class="guia-content-rendered">
+                {{ duvida.descricao | render_markdown | safe }}
+            </div>
+        </div>
+    </div>
+
+    <div class="respostas-container">
+        <h2 class="section-title">
+            <i class="fa-solid fa-circle-check" style="color: #2ecc71;"></i> 
+            Respostas Aprovadas ({{ duvida.respostas.count() }})
+        </h2>
+
+        {% if duvida.respostas.count() > 0 %}
+            <ul class="resposta-list">
+                {% for resposta in respostas %}
+                <li class="resposta-card">
+                    <div class="resposta-meta">
+                        <span class="resposta-author" title="Autor da Resposta no Discord">
+                            <i class="fa-brands fa-discord"></i>
+                            <strong>Resposta do Discord</strong> (ID: {{ resposta.author_discord_id or 'N/A' }})
+                        </span>
+                        <span class="resposta-date" title="Data da Aprovação">
+                            <i class="fa-solid fa-calendar-check"></i>
+                            <strong>Aprovada em:</strong> {{ resposta.created_at.strftime('%d/%m/%Y às %H:%M') }}
+                        </span>
+                    </div>
+                    <div class="resposta-content-rendered">
+                        {{ resposta.conteudo | render_markdown | safe }}
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="empty-list-message" style="padding: 20px 0; text-align: left;">
+                Ainda não há respostas aprovadas (marcadas com ✅ no Discord) para esta dúvida.
+            </div>
+        {% endif %}
+    </div>
+
+</div> {% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{# Scripts específicos desta página, se necessário #}
+{% endblock %}

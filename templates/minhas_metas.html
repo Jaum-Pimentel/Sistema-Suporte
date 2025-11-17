@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <h1>{{ title }}</h1>
+        <a href="{{ url_for('lancar_tempo') }}" class="action-btn resolve-btn">
+            <i class="fa-solid fa-plus"></i> Lançar Meta Diária
+        </a>
+    </div>
+    <p>Seu desempenho em {{ now.strftime('%B de %Y') }}</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}{% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}{% endif %}
+    {% endwith %}
+
+    <div class="report-section">
+        <div class="my-average-card">
+            <h2>Sua Média do Mês</h2>
+            <p class="average-time">{{ my_average_time }}</p>
+            <p class="record-count">{{ all_my_monthly_records_count }} dias registrados no total</p>
+        </div>
+    </div>
+
+    <div class="log-time-section">
+        <div class="history-header">
+            <h2>Seu Histórico Diário</h2>
+            <form method="GET" action="{{ url_for('minhas_metas') }}" class="filter-form">
+                <div class="filter-group date-filter-group">
+                    <label for="search_date_input"><i class="fa-solid fa-calendar"></i></label>
+                    <input type="date" name="search_date" id="search_date_input" class="form-control" value="{{ search_date or '' }}">
+                </div>
+                <div class="filter-group">
+                    <button type="submit" class="btn-search"><i class="fa-solid fa-search"></i> Buscar</button>
+                    {% if search_date %}
+                        <a href="{{ url_for('minhas_metas') }}" class="btn-clear">Limpar</a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+
+        {% if my_records %}
+            <table class="styled-table">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Tempo Registrado (MM:SS)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in my_records %}
+                    <tr>
+                        <td>{{ record.date_recorded.strftime('%d/%m/%Y') }}</td>
+                        <td>{{ '%02d:%02d' % (record.time_in_seconds // 60, record.time_in_seconds % 60) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>Nenhum tempo registrado para a data selecionada.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

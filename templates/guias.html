@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <h1>{{ title }}</h1>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}{% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}{% endif %}
+    {% endwith %}
+
+    <div class="toggle-form-container">
+        <button id="toggle-guia-form" class="action-btn resolve-btn"> {# Use uma classe apropriada #}
+            <i class="fa-solid fa-plus"></i> Adicionar Novo Guia
+        </button>
+    </div>
+
+   <div id="add-guia-container" class="log-time-form" style="margin-bottom: 2rem; display: none;"> {# Use uma classe apropriada #}
+        <h2>Adicionar Novo Guia</h2>
+        <form method="POST" action="{{ url_for('listar_guias') }}">
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                {{ form.titulo.label(class="form-label") }}
+                {{ form.titulo(class="form-control") }}
+                {% if form.titulo.errors %}<div class="error-message">{{ form.titulo.errors[0] }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+                {{ form.conteudo.label(class="form-label") }}
+
+                <div style="margin-bottom: 10px;">
+                    <button type="button" id="insert-image-btn" class="action-btn" style="background-color: #555;"> {# Use uma classe apropriada #}
+                        <i class="fa-solid fa-image"></i> Inserir Imagem
+                    </button>
+                    <input type="file" id="image-upload-input" accept="image/*" style="display: none;">
+                    <span id="upload-status" style="margin-left: 10px; color: #9ca3af; font-style: italic;"></span>
+                </div>
+                {{ form.conteudo(id="conteudo-textarea", class="form-control", rows=10) }}
+                {% if form.conteudo.errors %}<div class="error-message">{{ form.conteudo.errors[0] }}</div>{% endif %}
+            </div>
+            {{ form.submit(class="btn btn-primary") }} {# Use uma classe apropriada #}
+        </form>
+    </div>
+
+    <hr style="border-color: #3a3a5a; margin: 2rem 0;">
+
+    <div class="history-header">
+        <h2>Guias Publicados</h2>
+        <form method="GET" action="{{ url_for('listar_guias') }}" class="filter-form">
+            <div class="filter-group">
+                <input type="search" name="q" class="form-control" placeholder="Filtrar por título..." value="{{ query or '' }}">
+            </div>
+            <div class="filter-group">
+                <button type="submit" class="btn-search"><i class="fa-solid fa-search"></i> Buscar</button>
+                {% if query %}
+                    <a href="{{ url_for('listar_guias') }}" class="btn-clear">Limpar</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+   <div class="guias-grid" style="margin-top: 1.5rem;">
+    {% for guia in guias %}
+    <div class="guia-card">
+            <div class="guia-header">
+                <div class="guia-header-info">
+                    <h3>{{ guia.titulo }}</h3>
+                    <div class="guia-meta">
+                        <small>Criado por: {{ guia.author.name if guia.author else 'Desconhecido' }} em {{ guia.created_at.strftime('%d/%m/%Y') }}</small>
+                    </div>
+                </div>
+
+                <div class="guia-header-actions">
+                    
+                    <a href="{{ url_for('editar_guia', guia_id=guia.id) }}" class="guia-action-icon edit-icon" title="Editar Guia">
+                        <i class="fa-solid fa-pencil"></i>
+                    </a>
+                   
+                    <form method="POST" action="{{ url_for('deletar_guia', guia_id=guia.id) }}" onsubmit="return confirm('Tem certeza que deseja apagar este guia?');" class="guia-action-form">
+                        <button type="submit" class="guia-action-icon delete-icon" title="Apagar Guia">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </form>
+                    <i class="fa-solid fa-chevron-down expand-icon"></i>
+                </div>
+            </div>
+            <div class="guia-body">
+                <div class="guia-content guia-content-rendered">
+                     {{ guia.conteudo | render_markdown | safe }} {# Renderiza o Markdown #}
+                </div>
+            </div>
+    </div>
+    {% else %}
+    <p>Nenhum guia encontrado.</p>
+    {% endfor %}
+</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }} {# Mantém scripts do base.html #}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // === SCRIPT ATUALIZADO PARA EXPANDIR/RECOLHER (ACCORDION) ===
+    const guiasContainer = document.querySelector('.guias-grid'); // Seleciona o container dos guias
+    
+    if (guiasContainer) {
+        guiasContainer.addEventListener('click', (event) => {
+            // Verifica se o clique foi no cabeçalho ou em algo dentro dele
+            const header = event.target.closest('.guia-header');
+            if (!header) return; // Sai se não clicou no header
+
+            // Impede que clicar nos ícones de ação (lápis, lixeira) acione o accordion
+            if (event.target.closest('.guia-action-icon')) {
+                return; 
+            }
+
+            const currentCard = header.closest('.guia-card');
+            if (!currentCard) return; // Sai se não encontrar o card pai
+
+            // Verifica se o card clicado já estava ativo
+            const wasActive = currentCard.classList.contains('active');
+
+            // 1. Fecha TODOS os cards abertos
+            guiasContainer.querySelectorAll('.guia-card.active').forEach(activeCard => {
+                activeCard.classList.remove('active');
+            });
+
+            // 2. Abre o card clicado SOMENTE se ele não estava ativo antes
+            //    (Se ele já estava ativo, ele foi fechado no passo 1 e permanecerá fechado)
+            if (!wasActive) {
+                currentCard.classList.add('active');
+            }
+        });
+    } else {
+        console.warn("Container '.guias-grid' não encontrado para o script accordion.");
+    }
+    // === FIM DO SCRIPT ACCORDION ===
+
+
+    // Script para mostrar/esconder o formulário de adição (sem alterações)
+    const toggleBtn = document.getElementById('toggle-guia-form');
+    const addGuiaContainer = document.getElementById('add-guia-container');
+    if (toggleBtn && addGuiaContainer) {
+        toggleBtn.addEventListener('click', () => {
+            const isHidden = addGuiaContainer.style.display === 'none' || addGuiaContainer.style.display === '';
+            if (isHidden) {
+                addGuiaContainer.style.display = 'block';
+                toggleBtn.innerHTML = '<i class="fa-solid fa-minus"></i> Fechar Formulário';
+            } else {
+                addGuiaContainer.style.display = 'none';
+                toggleBtn.innerHTML = '<i class="fa-solid fa-plus"></i> Adicionar Novo Guia';
+            }
+        });
+    }
+
+    // === SCRIPT PARA UPLOAD E INSERÇÃO DE IMAGEM (sem alterações) ===
+    const insertImageBtn = document.getElementById('insert-image-btn');
+    const imageUploadInput = document.getElementById('image-upload-input');
+    const conteudoTextarea = document.getElementById('conteudo-textarea');
+    const uploadStatus = document.getElementById('upload-status');
+
+    if (insertImageBtn && imageUploadInput && conteudoTextarea && uploadStatus) {
+        insertImageBtn.addEventListener('click', () => {
+            imageUploadInput.click();
+        });
+
+        imageUploadInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (!file) { return; }
+
+            uploadStatus.textContent = 'Enviando imagem...';
+            insertImageBtn.disabled = true;
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch("{{ url_for('upload_guia_imagem') }}", {
+                method: 'POST',
+                body: formData,
+                // headers: { // Descomente se precisar de CSRF
+                //    'X-CSRFToken': document.querySelector('input[name="csrf_token"]')?.value || ''
+                // }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw new Error(err.error || `Erro ${response.status}`); });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.imageUrl) {
+                    const imageUrl = data.imageUrl;
+                    const markdownText = `\n![imagem](${imageUrl})\n`;
+                    const cursorPos = conteudoTextarea.selectionStart;
+                    const textBefore = conteudoTextarea.value.substring(0, cursorPos);
+                    const textAfter = conteudoTextarea.value.substring(cursorPos);
+                    conteudoTextarea.value = textBefore + markdownText + textAfter;
+                    conteudoTextarea.selectionStart = cursorPos + markdownText.length;
+                    conteudoTextarea.selectionEnd = cursorPos + markdownText.length;
+                    conteudoTextarea.focus();
+                    uploadStatus.textContent = 'Imagem inserida!';
+                    setTimeout(() => { uploadStatus.textContent = ''; }, 3000);
+                } else {
+                    throw new Error(data.error || 'Resposta inválida do servidor.');
+                }
+            })
+            .catch(error => {
+                console.error('Erro no upload:', error);
+                uploadStatus.textContent = `Erro: ${error.message}`;
+            })
+            .finally(() => {
+                event.target.value = null;
+                insertImageBtn.disabled = false;
+            });
+        });
+    } else {
+        console.warn("Um ou mais elementos para upload de imagem não foram encontrados no formulário de adicionar guia.");
+    }
+    // === FIM DO SCRIPT DE UPLOAD ===
+});
+</script>
+{% endblock %}

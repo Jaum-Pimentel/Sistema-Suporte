@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block head_extra %}
+<style>
+    /* Estilos para o formulário de edição (reutiliza classes do profile.html) */
+    .edit-user-card {
+        max-width: 800px;
+        margin: 0 auto;
+        background-color: #1f2937;
+        border-radius: 8px;
+        padding: 30px 35px;
+        border: 1px solid #374151;
+    }
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 0.9em;
+        color: #a78bfa;
+        font-weight: 500;
+    }
+    .input-with-icon {
+        position: relative;
+    }
+    .input-with-icon .fa-solid,
+    .input-with-icon .fa-brands {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6b7280;
+    }
+    .form-control {
+        width: 100%;
+        padding: 12px 12px 12px 40px; /* Padding para ícone */
+        background: #111827;
+        border: 1px solid #374151;
+        border-radius: 5px;
+        color: #fff;
+        font-size: 1em;
+        font-family: 'Poppins', sans-serif;
+        box-sizing: border-box;
+    }
+    .form-control:focus {
+        border-color: #8b5cf6;
+        outline: none;
+        box-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
+    }
+    .error-message {
+        color: #f87171;
+        font-size: 0.8em;
+        margin-top: 5px;
+    }
+    /* Estilo para Checkbox Admin */
+    .admin-checkbox-group {
+        display: flex;
+        align-items: center;
+        margin-top: 15px;
+        padding: 15px;
+        background-color: #2d3748;
+        border-radius: 6px;
+    }
+    .admin-checkbox-group input[type="checkbox"] {
+        width: 1.1em;
+        height: 1.1em;
+        margin-right: 10px;
+        cursor: pointer;
+    }
+    .admin-checkbox-group label {
+        color: #e5e7eb;
+        font-weight: 500;
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container admin-page-wrapper">
+    <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <h1><i class="fa-solid fa-user-pen"></i> {{ title }}</h1>
+        <a href="{{ url_for('admin_listar_usuarios') }}" class="btn-clear-duvida">
+            <i class="fa-solid fa-arrow-left"></i> Voltar para Usuários
+        </a>
+    </div>
+
+    {% include 'includes/_flash_messages.html' %}
+
+    <div class="edit-user-card">
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+            {{ form.original_username(type="hidden") }}
+            {{ form.original_email(type="hidden") }}
+
+            <div class="form-group">
+                {{ form.name.label(class="form-label") }}
+                <div class="input-with-icon">
+                    <i class="fa-solid fa-address-card"></i>
+                    {{ form.name(class="form-control") }}
+                </div>
+                {% if form.name.errors %}<div class="error-message">{{ form.name.errors[0] }}</div>{% endif %}
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    {{ form.username.label(class="form-label") }}
+                    <div class="input-with-icon">
+                        <i class="fa-solid fa-user"></i>
+                        {{ form.username(class="form-control") }}
+                    </div>
+                    {% if form.username.errors %}<div class="error-message">{{ form.username.errors[0] }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    {{ form.email.label(class="form-label") }}
+                    <div class="input-with-icon">
+                        <i class="fa-solid fa-envelope"></i>
+                        {{ form.email(class="form-control") }}
+                    </div>
+                    {% if form.email.errors %}<div class="error-message">{{ form.email.errors[0] }}</div>{% endif %}
+                </div>
+            </div>
+
+            <div class="form-group">
+                {{ form.discord_id.label(class="form-label") }}
+                <div class="input-with-icon">
+                    <i class="fa-brands fa-discord"></i>
+                    {{ form.discord_id(class="form-control", placeholder="ID do Discord") }}
+                </div>
+                {% if form.discord_id.errors %}<div class="error-message">{{ form.discord_id.errors[0] }}</div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <div class="admin-checkbox-group">
+                    {{ form.is_admin() }}
+                    {{ form.is_admin.label }}
+                </div>
+                {% if form.is_admin.errors %}<div class="error-message">{{ form.is_admin.errors[0] }}</div>{% endif %}
+            </div>
+
+            <hr style="border-color: #3a3a5a; margin: 2rem 0;">
+
+            <div class="password-section">
+                <h4 style="color: #c4b5fd; margin-bottom: 5px;">Redefinir Senha (Opcional)</h4>
+                <p class="subtitle" style="color: #9ca3af; font-size: 0.9em; margin-top: 0; margin-bottom: 15px;">Preencha para definir uma nova senha. Deixe em branco para não alterar.</p>
+                <div class="form-row">
+                    <div class="form-group">
+                        {{ form.password.label(class="form-label") }}
+                        <div class="input-with-icon">
+                            <i class="fa-solid fa-lock"></i>
+                            {{ form.password(class="form-control", autocomplete="new-password") }}
+                        </div>
+                        {% if form.password.errors %}<div class="error-message">{{ form.password.errors[0] }}</div>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        {{ form.confirm_password.label(class="form-label") }}
+                        <div class="input-with-icon">
+                            <i class="fa-solid fa-lock"></i>
+                            {{ form.confirm_password(class="form-control", autocomplete="new-password") }}
+                        </div>
+                        {% if form.confirm_password.errors %}<div class="error-message">{{ form.confirm_password.errors[0] }}</div>{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group form-submit-group" style="margin-top: 30px; text-align: right;">
+                {{ form.submit(class="btn btn-primary") }}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

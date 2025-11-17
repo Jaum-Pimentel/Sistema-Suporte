@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="form-container">
+    <div class="form-box">
+        <div class="form-header">
+            <h2>Acessar Sistema</h2>
+            <p>Bem-vindo de volta!</p>
+        </div>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+            <div class="input-group">
+                {{ form.username.label }}
+                {{ form.username }}
+            </div>
+            <div class="input-group">
+                {{ form.password.label }}
+                {{ form.password }}
+            </div>
+
+            <div class="form-actions">
+                <a href="{{ url_for('register') }}" class="switch-form-link">Criar uma conta</a>
+                
+                <a href="{{ url_for('reset_request') }}" class="switch-form-link" style="text-align: CENTER;">Esqueceu a senha? <br><br></a>
+            </div>
+            {{ form.submit(class="submit-btn") }}
+        </form>
+    </div>
+</div>
+{% endblock %}

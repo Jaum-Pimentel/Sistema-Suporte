@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <h1>{{ title }}</h1>
+        {# Botão para voltar para a lista de comportamentos #}
+        <a href="{{ url_for('listar_comportamentos') }}" class="btn-clear" style="margin-left: auto;"> &larr; Voltar para Comportamentos</a>
+    </div>
+
+     {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}{% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}{% endif %}
+    {% endwith %}
+
+    {# Reutiliza o estilo do formulário de adicionar guia/log time #}
+    <div class="log-time-form" style="margin-top: 2rem;"> 
+        {# Action vazio envia para a mesma URL (a rota de edição) #}
+        <form method="POST" action=""> 
+            {{ form.hidden_tag() }} {# Proteção CSRF #}
+            
+            <div class="form-group">
+                {{ form.titulo.label(class="form-label") }}
+                {{ form.titulo(class="form-control") }}
+                {% if form.titulo.errors %}<div class="error-message">{{ form.titulo.errors[0] }}</div>{% endif %}
+            </div>
+            
+            <div class="form-group">
+                {{ form.categoria.label(class="form-label") }}
+                {{ form.categoria(class="form-control") }} {# O valor selecionado virá do backend #}
+                {% if form.categoria.errors %}<div class="error-message">{{ form.categoria.errors[0] }}</div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form.conteudo.label(class="form-label") }}
+                {{ form.conteudo(class="form-control", rows=15) }} {# Mais linhas para edição #}
+                {% if form.conteudo.errors %}<div class="error-message">{{ form.conteudo.errors[0] }}</div>{% endif %}
+            </div>
+            
+            {# Muda o texto do botão para indicar atualização #}
+            {{ form.submit(class="btn btn-primary", value="Salvar Alterações") }} 
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{# Adicione aqui scripts específicos se precisar, como um editor Markdown para o conteúdo #}
+{{ super() }}
+{% endblock %}

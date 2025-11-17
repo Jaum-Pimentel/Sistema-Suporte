@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}Solicitação de Queries{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <h1>Solicitação de Queries</h1>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}{% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}{% endif %}
+    {% endwith %}
+
+    <div class="query-container">
+        <div class="query-actions-column">
+            <div class="query-card collapsible active">
+                <div class="query-header">
+                    <h3><i class="fa-solid fa-plus"></i> Formulário de Solicitação</h3>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="query-body">
+                    <form method="POST" action="{{ url_for('list_queries') }}">
+                        {{ request_form.hidden_tag() }}
+                        <div class="form-group">
+                            {{ request_form.description.label(class="form-label") }}
+                            {{ request_form.description(class="form-control", rows=5, placeholder="Descreva em detalhes o que a query precisa fazer...") }}
+                        </div>
+                        <div class="form-group">
+                            <button type="submit" name="submit_request" class="btn btn-primary">Enviar Solicitação</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="query-card" style="margin-top: 1.5rem;">
+                <div class="query-header static">
+                     <h3><i class="fa-solid fa-filter"></i> Filtro de Busca</h3>
+                </div>
+                <div class="query-body" style="display: block; padding-top: 1rem;">
+                    <form method="GET" action="{{ url_for('list_queries') }}" class="filter-form vertical">
+                        <div class="filter-group">
+                            <input type="search" name="search" class="form-control" placeholder="Filtrar por descrição..." value="{{ search_term or '' }}">
+                        </div>
+                        <div class="filter-checkbox-group">
+                            <input type="checkbox" name="show_mine" value="true" id="show_mine_checkbox" {% if show_mine %}checked{% endif %}>
+                            <label for="show_mine_checkbox">Mostrar somente minhas solicitações</label>
+                        </div>
+                        <div class="filter-group">
+                            <button type="submit" class="btn-search"><i class="fa-solid fa-search"></i> Buscar</button>
+                            {% if search_term or show_mine %}
+                                <a href="{{ url_for('list_queries') }}" class="btn-clear">Limpar</a>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="query-lists-column">
+            <section>
+                <h2><i class="fa-solid fa-hourglass-half"></i> Solicitações Pendentes</h2>
+                {% for query in pending_queries %}
+                    <div class="query-card collapsible">
+                        <div class="query-header">
+                            <div class="query-title">
+                                <p>{{ query.description }}</p>
+                                <small>Solicitado por: {{ query.requester.name }} em {{ query.created_at.strftime('%d/%m/%Y') }}</small>
+                            </div>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <div class="query-body">
+                            <form method="POST" action="{{ url_for('answer_query', query_id=query.id) }}">
+                                {{ answer_form.hidden_tag() }}
+                                <div class="form-group">
+                                    {{ answer_form.sql_query.label(class="form-label") }}
+                                    {{ answer_form.sql_query(class="form-control code-input", rows=8, placeholder="Cole ou escreva o código SQL aqui...") }}
+                                </div>
+                                <div class="form-group">
+                                    {{ answer_form.submit(class="btn btn-primary") }}
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                {% else %}
+                    <p>Nenhuma solicitação pendente encontrada para os filtros aplicados.</p>
+                {% endfor %}
+            </section>
+
+            <section>
+                <h2><i class="fa-solid fa-check-double"></i> Queries Respondidas</h2>
+                {% for query in answered_queries %}
+                    <div class="query-card collapsible">
+                        <div class="query-header">
+                            <div class="query-title">
+                                <p>{{ query.description }}</p>
+                                <small>Por: {{ query.requester.name }} | Resp: {{ query.responder.name if query.responder else 'N/A' }}</small>
+                            </div>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <div class="query-body">
+                            <div class="sql-code-block">
+                                <pre><code id="query-code-{{ query.id }}">{{ query.sql_query }}</code></pre>
+                                <button class="copy-btn" onclick="copyQuery(event, '{{ query.id }}')">
+                                    <i class="fa-regular fa-copy"></i> Copiar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                     <p>Nenhuma query respondida encontrada para os filtros aplicados.</p>
+                {% endfor %}
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/queries.css') }}">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap">
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const collapsibles = document.querySelectorAll('.query-card.collapsible');
+    collapsibles.forEach(card => {
+        const header = card.querySelector('.query-header');
+        header.addEventListener('click', (event) => {
+            event.stopPropagation();
+            card.classList.toggle('active');
+        });
+    });
+});
+
+function copyQuery(event, queryId) {
+    event.stopPropagation();
+    const codeBlock = document.getElementById('query-code-' + queryId);
+    const textToCopy = codeBlock.innerText;
+    const button = event.currentTarget;
+    const textArea = document.createElement('textarea');
+    textArea.value = textToCopy;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-9999px';
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+        document.execCommand('copy');
+        const originalIcon = button.innerHTML;
+        button.innerHTML = '<i class="fa-solid fa-check"></i> Copiado!';
+        button.disabled = true;
+        setTimeout(() => {
+            button.innerHTML = originalIcon;
+            button.disabled = false;
+        }, 2000);
+    } catch (err) {
+        console.error('Falha ao copiar texto: ', err);
+    }
+    document.body.removeChild(textArea);
+}
+</script>
+{% endblock %}

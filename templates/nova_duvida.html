@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <h1><i class="fa-solid fa-circle-question"></i> {{ title }}</h1>
+        <p>Preencha os detalhes abaixo. Sua dúvida será enviada para o Discord para que outros possam ajudar.</p>
+        {# Link para voltar para a lista de dúvidas #}
+        <a href="{{ url_for('listar_duvidas') }}" class="btn-clear-duvida" style="margin-top: 15px; display: inline-block; color:white;"> &larr; Ver Dúvidas Enviadas</a>
+    </div>
+
+    {# Exibe mensagens flash, se houver #}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-container" style="margin-bottom: 20px;">
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    {# Reutiliza o estilo do formulário de adicionar guia/log time ou cria um novo #}
+    <div class="log-time-form"> 
+        <form method="POST" action=""> {# Action vazio envia para a mesma URL #}
+            {{ form.hidden_tag() }} {# Proteção CSRF #}
+            
+            <div class="form-group">
+                {{ form.titulo.label(class="form-label") }}
+                 <div class="input-with-icon"> {# Adiciona wrapper para ícone se quiser #}
+                     <i class="fa-solid fa-heading"></i> {# Ícone exemplo #}
+                    {{ form.titulo(class="form-control", placeholder="Ex: Como configurar email no sistema X?") }}
+                 </div>
+                {% if form.titulo.errors %}
+                    {% for error in form.titulo.errors %}
+                        <div class="error-message">{{ error }}</div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                {{ form.categoria.label(class="form-label") }}
+                <div class="input-with-icon"> {# Adiciona wrapper para ícone se quiser #}
+                     <i class="fa-solid fa-tags"></i> {# Ícone exemplo #}
+                     {{ form.categoria(class="form-control") }} {# O WTForms gera o <select> com as opções #}
+                </div>
+                {% if form.categoria.errors %}
+                    {% for error in form.categoria.errors %}
+                       <div class="error-message">{{ error }}</div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form.descricao.label(class="form-label") }}
+                 <div class="input-with-icon"> {# Adiciona wrapper para ícone se quiser #}
+                     <i class="fa-solid fa-paragraph" style="align-self: flex-start; margin-top: 14px;"></i> {# Ícone exemplo alinhado ao topo #}
+                    {{ form.descricao(class="form-control", rows=8, placeholder="Descreva o problema ou a pergunta com o máximo de detalhes possível...") }}
+                 </div>
+                {% if form.descricao.errors %}
+                     {% for error in form.descricao.errors %}
+                       <div class="error-message">{{ error }}</div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            
+            {# Botão de envio #}
+            <div class="form-group form-submit-group">
+                 {{ form.submit(class="btn btn-primary btn-submit-duvida") }} {# Adiciona classe específica se precisar estilizar #}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{# Adicione aqui scripts específicos se precisar, como confirmação antes de enviar #}
+{{ super() }}
+{% endblock %}

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistema de Suporte{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+    {% block head_extra %}{% endblock %} </head>
+<body>
+    <div class="main-container">
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h1 style="color: #d412d4ff">SUPORTE</h1><span style="color: #d412d4ff; font-size: 1.5em;">AUVO</span>
+            </div>
+            <ul class="menu">
+                <li class="menu-item">
+                    <a href="{{ url_for('fila_telefonica') }}">
+                        <i class="fa-solid fa-phone-alt menu-icon"></i>
+                        <span>Fila Telefônica</span>
+                    </a>
+                </li>
+
+                <li class="menu-item">
+                    <a href="{{ url_for('list_reminders') }}">
+                        <i class="fa-solid fa-bell menu-icon"></i>
+                        <span>Lembretes</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                   <a href="{{ url_for('listar_eventos') }}">
+                       <i class="fa-solid fa-clipboard-list menu-icon"></i>
+                       <span>Registrar Eventos</span>
+                   </a>
+               </li>
+                <li class="menu-item">
+                   <a href="{{ url_for('listar_duvidas') }}">
+                       <i class="fa-solid fa-question-circle menu-icon"></i> 
+                       <span>Dúvidas</span>
+                   </a>
+               </li>
+              <li class="menu-item">
+                    <a href="{{ url_for('minhas_metas') }}">
+                        <i class="fa-solid fa-chart-line menu-icon"></i>
+                        <span>Minhas Metas</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                       <a class="nav-link" href="{{ url_for('list_queries') }}">
+                            <i class="fa-solid fa-database menu-icon"></i>
+                            <span>Query</span>
+                       </a>
+                </li>
+               <li class="menu-item">
+                   <a href="{{ url_for('listar_guias') }}">
+                       <i class="fa-solid fa-book-open menu-icon"></i>
+                       <span>Guias</span>
+                   </a>
+               </li>
+
+               <li class="menu-item">
+                   <a href="{{ url_for('listar_comportamentos') }}">
+                       <i class="fa-solid fa-cogs menu-icon"></i>
+                       <span>Comportamentos</span>
+                   </a>
+               </li>
+
+              
+               <li class="menu-item">
+                   <a href="{{ url_for('links_uteis') }}">
+                       <i class="fa-solid fa-link menu-icon"></i>
+                       <span>Links Úteis</span>
+                   </a>
+               </li>
+                <li class="menu-item has-submenu" id="tickets-menu">
+                    <a href="#">
+                        <i class="fa-solid fa-ticket menu-icon"></i>
+                        <span>Tickets FreshDesk</span>
+                    </a>
+                    <ul class="submenu">
+                        <li><a href="{{ url_for('tickets_freshdesk') }}">Todos os Tickets</a></li>
+                        <li><a href="{{ url_for('tickets_retornar') }}">Tickets para Retornar</a></li>
+                    </ul>
+                </li>
+             <li class="menu-item has-submenu" id="demanda-menu">
+                    <a href="#">
+                        <i class="fa-solid fa-table-columns menu-icon"></i>
+                        <span>Gerir Demanda </span>
+                    </a>
+                    <ul class="submenu">
+                        <li><a href="{{ url_for('kanban_individual') }}">Minha Gestão</a></li>
+                        <li><a href="{{ url_for('kanban_grupo') }}">Gestão em Grupo</a></li>
+                    </ul>
+                </li>
+
+            </ul>
+           <div class="sidebar-footer">
+                {% if current_user.is_authenticated %}
+                <div class="user-profile">
+                    <div class="user-avatar">
+                         {% if current_user.avatar_filename %}
+                            <img src="{{ url_for('static', filename='uploads/avatars/' + current_user.avatar_filename) }}" alt="Avatar">
+                        {% else %}
+                            {{ current_user.name[0] }}
+                        {% endif %}
+                    </div>
+                    <a href="{{ url_for('profile') }}" class="user-profile-link" title="Editar Perfil">
+                        <div class="user-info">
+                            <span class="user-name">{{ current_user.name }}</span>
+                            <span class="user-role">Atendente</span>
+                        </div>
+                    </a>
+                    
+                    {% if current_user.is_admin %}
+                    <a href="{{ url_for('admin_dashboard') }}" class="admin-icon" title="Painel Admin">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </a>
+                    {% endif %}
+                    <a href="{{ url_for('logout') }}" class="logout-icon" title="Sair">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </nav>
+        <main class="content">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const submenuToggles = document.querySelectorAll('.has-submenu > a');
+
+        submenuToggles.forEach(function(toggle) {
+            toggle.addEventListener('click', function(event) {
+                event.preventDefault();
+                document.querySelectorAll('.has-submenu.active').forEach(function(item) {
+                    if (item !== toggle.parentElement) {
+                        item.classList.remove('active');
+                    }
+                });
+                this.parentElement.classList.toggle('active');
+            });
+        });
+
+        const currentPath = window.location.pathname;
+
+        // Tenta encontrar o link exato que corresponde ao path atual
+        const activeLink = document.querySelector(`.menu a[href="${currentPath}"]`);
+
+        if (activeLink) {
+             const menuItem = activeLink.closest('.menu-item');
+             if (menuItem && !menuItem.classList.contains('has-submenu')) {
+                 // Adiciona a classe ativa ao item de menu principal (se não for submenu)
+                 menuItem.classList.add('active-link');
+             } else {
+                 // Se for um link de submenu
+                 activeLink.classList.add('active-submenu-link');
+                 const parentMenu = activeLink.closest('.menu-item.has-submenu');
+                 if (parentMenu) {
+                     parentMenu.classList.add('active'); // Mantém o submenu pai aberto
+                     parentMenu.classList.add('active-link'); // Destaca o menu pai
+                 }
+             }
+        } else {
+             // Fallback para submenus baseados em includes (como estava antes)
+             if (currentPath.includes('/kanban/')) {
+                 document.getElementById('demanda-menu')?.classList.add('active');
+                 document.getElementById('demanda-menu')?.classList.add('active-link');
+             }
+             if (currentPath.includes('/tickets-')) {
+                 document.getElementById('tickets-menu')?.classList.add('active');
+                 document.getElementById('tickets-menu')?.classList.add('active-link');
+             }
+             // Adicionar fallback para /duvidas/nova ou /duvidas/<id> se necessário
+             if (currentPath.includes('/duvidas')) {
+                   const duvidasMenuItem = document.querySelector('a[href="{{ url_for('listar_duvidas') }}"]')?.closest('.menu-item');
+                   if(duvidasMenuItem) duvidasMenuItem.classList.add('active-link');
+             }
+        }
+    });
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

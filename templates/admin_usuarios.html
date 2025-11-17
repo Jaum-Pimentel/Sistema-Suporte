@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block head_extra %}
+<style>
+    /* Estilos da Tabela de Usuários (semelhante ao log-table) */
+    .user-table-container {
+        overflow-x: auto; /* Permite rolagem horizontal se necessário */
+    }
+    .user-table {
+        width: 100%;
+        border-collapse: collapse;
+        color: #bdc3c7;
+        background-color: #1f2937;
+        border: 1px solid #374151;
+        border-radius: 6px;
+        overflow: hidden; /* Para o border-radius */
+    }
+    .user-table th, .user-table td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #374151;
+    }
+    .user-table thead tr {
+         background-color: #2d3748;
+         position: sticky;
+         top: 0;
+    }
+    .user-table th { color: #c4b5fd; font-size: 0.9em; text-transform: uppercase; }
+    .user-table tbody tr:last-child td { border-bottom: none; }
+    .user-table tbody tr:nth-child(even) { background-color: #232d3b; }
+    
+    .user-table td .user-name { color: #e5e7eb; font-weight: 500; }
+    .user-table td .user-login { font-size: 0.9em; color: #9ca3af; }
+    .user-table td .status-admin {
+        color: #2ecc71; /* Verde */
+        font-weight: 600;
+        font-size: 1.1em;
+    }
+    .user-table td .status-user {
+        color: #9ca3af; /* Cinza */
+        font-size: 1em;
+    }
+    
+    /* Botão de Editar na Tabela */
+    .btn-edit-user {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 6px 12px;
+        font-size: 0.9em;
+        color: #e5e7eb;
+        background-color: #4b5563;
+        border: 1px solid #6b7280;
+        border-radius: 5px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+    .btn-edit-user:hover {
+        background-color: #6b7280;
+        border-color: #9ca3af;
+        color: #fff;
+    }
+    
+    /* Paginação */
+    .pagination {
+        margin-top: 20px;
+        text-align: center;
+    }
+    .pagination a {
+        margin: 0 5px;
+        padding: 8px 12px;
+        text-decoration: none;
+        color: #a78bfa;
+        background-color: #2d3748;
+        border: 1px solid #374151;
+        border-radius: 4px;
+        transition: background-color 0.2s;
+    }
+    .pagination a:hover {
+        background-color: #4f46e5;
+        color: #fff;
+    }
+    .pagination span {
+        margin: 0 5px;
+        padding: 8px 12px;
+        color: #fff;
+        background-color: #6d28d9; /* Cor de destaque para página atual */
+        border: 1px solid #6d28d9;
+        border-radius: 4px;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container admin-page-wrapper">
+    <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <h1><i class="fa-solid fa-users-cog"></i> {{ title }}</h1>
+         <a href="{{ url_for('admin_dashboard') }}" class="btn-clear-duvida"> <i class="fa-solid fa-arrow-left"></i> Voltar ao Painel Admin
+        </a>
+    </div>
+
+    {% include 'includes/_flash_messages.html' %} {# Inclui seus flashes #}
+
+    <div class="user-table-container">
+        <table class="user-table">
+            <thead>
+                <tr>
+                    <th>Nome Completo</th>
+                    <th>Login (Username)</th>
+                    <th>Email</th>
+                    <th>ID Discord</th>
+                    <th>Status</th>
+                    <th>Ação</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users.items %} {# users.items é usado com paginate #}
+                <tr>
+                    <td><span class="user-name">{{ user.name }}</span></td>
+                    <td><span class="user-login">{{ user.username }}</span></td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.discord_id or 'N/A' }}</td>
+                    <td>
+                        {% if user.is_admin %}
+                            <span class="status-admin" title="Administrador"><i class="fa-solid fa-shield-halved"></i></span>
+                        {% else %}
+                             <span class="status-user" title="Usuário Padrão"><i class="fa-solid fa-user"></i></span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('admin_editar_usuario', user_id=user.id) }}" class="btn-edit-user">
+                            <i class="fa-solid fa-pencil"></i> Editar
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 20px; font-style: italic;">Nenhum usuário encontrado.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if users.pages > 1 %}
+    <div class="pagination">
+        {% if users.has_prev %}
+            <a href="{{ url_for('admin_listar_usuarios', page=users.prev_num) }}">&laquo; Anterior</a>
+        {% endif %}
+
+        {% for page_num in users.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if page_num %}
+                {% if users.page == page_num %}
+                    <span>{{ page_num }}</span> {% else %}
+                    <a href="{{ url_for('admin_listar_usuarios', page=page_num) }}">{{ page_num }}</a>
+                {% endif %}
+            {% else %}
+                <span style="color: #6b7280;">...</span> {% endif %}
+        {% endfor %}
+
+        {% if users.has_next %}
+            <a href="{{ url_for('admin_listar_usuarios', page=users.next_num) }}">Próxima &raquo;</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

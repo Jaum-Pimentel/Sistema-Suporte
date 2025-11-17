@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Perfil{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <h1>Meu Perfil</h1>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}{% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}{% endif %}
+    {% endwith %}
+
+    <div class="profile-card">
+
+        <div class="profile-header">
+            <div class="profile-avatar">{{ current_user.name[0] }}</div>
+            <div class="profile-info">
+                <h2>{{ current_user.name }}</h2>
+                <p>Atualize suas informações de perfil abaixo.</p>
+            </div>
+        </div>
+
+        <div class="profile-body">
+            <form method="POST" action="">
+                {{ form.hidden_tag() }}
+
+                <div class="form-group">
+                    {{ form.name.label(class="form-label") }}
+                    <div class="input-with-icon">
+                        <i class="fa-solid fa-address-card"></i>
+                        {{ form.name(class="form-control") }}
+                    </div>
+                    {% if form.name.errors %}<div class="error-message">{{ form.name.errors[0] }}</div>{% endif %}
+                </div>
+
+                <div class="form-row"> 
+                    
+                    <div class="form-group">
+                        {{ form.username.label(class="form-label") }}
+                        <div class="input-with-icon">
+                           <i class="fa-solid fa-user"></i> 
+                           {{ form.username(class="form-control") }} 
+                        </div>
+                        {% if form.username.errors %}<div class="error-message">{{ form.username.errors[0] }}</div>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        {{ form.email.label(class="form-label") }}
+                        <div class="input-with-icon">
+                            <i class="fa-solid fa-envelope"></i>
+                            {{ form.email(class="form-control") }}
+                        </div>
+                        {% if form.email.errors %}<div class="error-message">{{ form.email.errors[0] }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    {{ form.discord_id.label(class="form-label") }}
+                    <div class="input-with-icon">
+                         <i class="fa-brands fa-discord"></i>
+                        {{ form.discord_id(class="form-control", placeholder="Cole seu ID do Discord aqui") }}
+                    </div>
+                    {% if form.discord_id.errors %}<div class="error-message">{{ form.discord_id.errors[0] }}</div>{% endif %}
+                </div>
+
+                <div class="password-section">
+                    <h4>Alterar Senha</h4>
+                    <p class="subtitle">Deixe os campos abaixo em branco para não alterar sua senha atual.</p>
+                    <div class="form-row">
+                        <div class="form-group">
+                            {{ form.password.label(class="form-label") }}
+                            <div class="input-with-icon">
+                                <i class="fa-solid fa-lock"></i>
+                                {{ form.password(class="form-control") }}
+                            </div>
+                            {% if form.password.errors %}<div class="error-message">{{ form.password.errors[0] }}</div>{% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            {{ form.confirm_password.label(class="form-label") }}
+                            <div class="input-with-icon">
+                                <i class="fa-solid fa-lock"></i>
+                                {{ form.confirm_password(class="form-control") }}
+                            </div>
+                            {% if form.confirm_password.errors %}<div class="error-message">{{ form.confirm_password.errors[0] }}</div>{% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group form-submit-group">
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
