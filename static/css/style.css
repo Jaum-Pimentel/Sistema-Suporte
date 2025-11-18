@@ -4110,3 +4110,28 @@ ESTILOS PARA O FORMULÁRIO DE AGENDAMENTO
 .button--primary:hover {
   background-color: #0056b3; /* Cor de fundo ao passar o mouse */
 }
+/* No seu style.css */
+
+.fila-membro {
+    /* Garante que os itens fiquem alinhados verticalmente */
+    display: flex;
+    align-items: center;
+}
+
+.membro-details {
+    display: flex;
+    flex-direction: column; /* Empilha o nome e o ramal */
+    margin-left: 10px;     /* Espaço depois do avatar */
+    flex-grow: 1;          /* Ocupa o espaço disponível */
+}
+
+.membro-nome {
+    /* (Seu estilo existente) */
+    font-weight: 600;
+}
+
+.membro-ramal {
+    font-size: 0.9em;
+    color: #6c757d; /* Uma cor mais suave */
+}
+

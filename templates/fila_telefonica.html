@@ -23,13 +23,21 @@
         {% if queue_members %}
             <div class="fila-visual">
                 {% for member in queue_members %}
-                    <div class="fila-membro {% if member.user_id == current_attendant_id %}current{% endif %}">
-                        <div class="membro-avatar">{{ member.user.name[0] | upper }}</div>
-                        <span class="membro-nome">{{ member.user.name }}</span>
-                        {% if member.user_id == current_attendant_id %}
-                            <span class="membro-status">Atendendo</span>
-                        {% endif %}
-                    </div>
+                   <div class="fila-membro {% if member.user_id == current_attendant_id %}current{% endif %}">
+    <div class="membro-avatar">{{ member.user.name[0] | upper }}</div>
+    
+    <div class="membro-details">
+        <span class="membro-nome">{{ member.user.name }}</span>
+        
+        {% if member.user.ramal %}
+            <span class="membro-ramal">Ramal: {{ member.user.ramal }}</span>
+        {% endif %}
+    </div>
+    
+    {% if member.user_id == current_attendant_id %}
+        <span class="membro-status">Atendendo</span>
+    {% endif %}
+</div>
                     {% if not loop.last %}
                         <span class="fila-seta">→</span>
                     {% endif %}

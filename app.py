@@ -139,6 +139,7 @@ class User(db.Model, UserMixin):
     manager_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True) # <<< ADICIONADO AQUI
     lunch_start = db.Column(db.Time, nullable=True)
     lunch_end = db.Column(db.Time, nullable=True)
+    ramal = db.Column(db.String(10), nullable=True)
     def set_password(self, password): self.password_hash = generate_password_hash(password)
     def check_password(self, password): return check_password_hash(self.password_hash, password)
 
@@ -384,6 +385,7 @@ class ProfileForm(FlaskForm):
     password = PasswordField('Nova Senha', validators=[Optional(), Length(min=6)])
     confirm_password = PasswordField('Confirmar Nova Senha', validators=[EqualTo('password')])
     submit = SubmitField('Salvar Alterações')
+    ramal = StringField('Ramal', validators=[Optional(), Length(max=10)])
     
     # Validador para username
     def validate_username(self, username): # <-- Verifique se está aqui
@@ -491,24 +493,22 @@ def profile():
     
     if form.validate_on_submit():
         current_user.name = form.name.data
-        current_user.username = form.username.data # <-- Garanta que esta linha esteja aqui
+        current_user.username = form.username.data 
         current_user.email = form.email.data
         current_user.discord_id = form.discord_id.data or None
+        current_user.ramal = form.ramal.data or None # <-- LINHA ADICIONADA (para salvar)
         
         password_changed = False 
         if form.password.data:
-            # A validação EqualTo já deve garantir isso, mas verificamos de novo
             if form.password.data == form.confirm_password.data:
                 current_user.set_password(form.password.data)
                 password_changed = True
             else:
-                 # Se chegou aqui, algo está errado com EqualTo, mas damos feedback
-                 flash('As senhas digitadas não coincidem.', 'danger')
-                 # Não continua para o commit
-                 return render_template('profile.html', title='Editar Perfil', form=form)
+                flash('As senhas digitadas não coincidem.', 'danger')
+                return render_template('profile.html', title='Editar Perfil', form=form)
 
         try:
-            db.session.commit() # Salva todas as alterações (nome, username, email, discord_id, senha)
+            db.session.commit() # Salva todas as alterações
             if password_changed:
                 flash('Sua senha foi alterada com sucesso!', 'success')
             flash('Seu perfil foi atualizado com sucesso!', 'success')
@@ -517,7 +517,6 @@ def profile():
             db.session.rollback() 
             flash(f'Erro ao salvar no banco de dados: {e}', 'danger')
 
-    # Se a validação POST falhou, mostra os erros
     elif request.method == 'POST': 
         for field, errors in form.errors.items():
             for error in errors:
@@ -528,13 +527,12 @@ def profile():
     # Lógica GET: Pré-preenche o formulário
     if request.method == 'GET':
         form.name.data = current_user.name
-        form.username.data = current_user.username # <-- Esta linha pré-preenche
+        form.username.data = current_user.username
         form.email.data = current_user.email
         form.discord_id.data = current_user.discord_id
+        form.ramal.data = current_user.ramal # <-- LINHA ADICIONADA (para carregar)
         
-    # Renderiza o template (para GET ou falha no POST)
-    return render_template('profile.html', title='Editar Perfil', form=form) # Não precisa passar current_user aqui, Flask-Login já faz
-
+    return render_template('profile.html', title='Editar Perfil', form=form)
 # --- ROTAS DO KANBAN ---
 @app.route('/kanban/individual')
 @login_required
