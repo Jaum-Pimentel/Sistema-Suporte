@@ -91,6 +91,92 @@
         border-radius: 4px;
         font-weight: 600;
     }
+    /* ---- Paleta Roxa ---- */
+:root {
+  --roxo-principal: #673AB7; /* Roxo "Deep Purple" */
+  --roxo-escuro: #512DA8;
+  --roxo-claro: #D1C4E9;
+  --roxo-fundo: #f9f7fd;   /* Um fundo lavanda muito claro */
+  --texto-escuro: #333;
+  --texto-claro: #ffffff;
+}
+
+/* Para dar contexto ao tema */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f4f4f9; /* Fundo geral levemente acinzentado */
+  color: var(--texto-escuro);
+}
+
+/* ---- Estilo do Cabeçalho ---- */
+
+/* IMPORTANTE: Remova o atributo 'style' do seu HTML 
+  para que este CSS funcione corretamente!
+*/
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 25px;
+  background-color: var(--roxo-fundo); /* Fundo lavanda super claro */
+  border-bottom: 3px solid var(--roxo-principal); /* Borda roxa marcante */
+  margin-bottom: 30px; /* Espaço abaixo do cabeçalho */
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(103, 58, 183, 0.08);
+}
+
+/* ---- Estilo do Título (h1) ---- */
+.page-header h1 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--roxo-escuro); /* Título em roxo escuro */
+}
+
+/* Ícone dentro do H1 */
+.page-header h1 i.fa-users-cog {
+  margin-right: 12px;
+  color: var(--roxo-principal); /* Ícone no tom principal */
+  font-size: 0.9em; /* Um pouco menor que o texto */
+  transform: translateY(-2px); /* Alinhamento fino */
+}
+
+/* ---- Estilo do Botão "Voltar" ---- */
+.btn-clear-duvida1 {
+  display: inline-flex; /* Para alinhar ícone e texto */
+  align-items: center;
+  gap: 8px; /* Espaço entre o ícone e o texto */
+  padding: 10px 20px;
+  
+  /* O destaque do tema! */
+  background: linear-gradient(45deg, var(--roxo-principal), var(--roxo-escuro));
+  
+  color: var(--texto-claro);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 15px;
+  border: none;
+  border-radius: 50px; /* Botão em formato "pílula" */
+  
+  /* Efeitos de transição e sombra */
+  box-shadow: 0 4px 10px rgba(103, 58, 183, 0.4);
+  transition: all 0.3s ease;
+}
+
+/* Efeito HOVER (passar o mouse) */
+.btn-clear-duvida1:hover {
+  transform: translateY(-3px) scale(1.03); /* Leve "salto" */
+  box-shadow: 0 6px 15px rgba(103, 58, 183, 0.6);
+  background: linear-gradient(45deg, var(--roxo-escuro), var(--roxo-principal)); /* Inverte o gradiente */
+}
+
+/* NOTA: Seu ícone "fa-arrow-left1" parece ser um erro de digitação.
+  O correto no Font Awesome é geralmente "fa-arrow-left".
+  Este seletor vai funcionar para qualquer ícone 'i' dentro do botão.
+*/
+.btn-clear-duvida1 i {
+  font-size: 0.9em;
+}
 </style>
 {% endblock %}
 
@@ -98,7 +184,7 @@
 <div class="page-container admin-page-wrapper">
     <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
         <h1><i class="fa-solid fa-users-cog"></i> {{ title }}</h1>
-         <a href="{{ url_for('admin_dashboard') }}" class="btn-clear-duvida"> <i class="fa-solid fa-arrow-left"></i> Voltar ao Painel Admin
+         <a href="{{ url_for('admin_dashboard') }}" class="btn-clear-duvida1"> <i class="fa-solid fa-arrow-left1"></i> Voltar ao Painel Admin
         </a>
     </div>
 

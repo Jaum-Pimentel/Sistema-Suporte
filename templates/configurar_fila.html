@@ -2,6 +2,218 @@
 
 {% block title %}{{ title }}{% endblock %}
 
+{% block head_extra %}
+{{ super() }}
+<style>
+    /* --- Tema Escuro para Configurar Fila --- */
+    
+    /* Cor de fundo principal, da sua imagem */
+    :root {
+        --dark-bg-primary: #1e2128;
+        --dark-bg-secondary: #2c303a;
+        --dark-border: #3b4049;
+        --dark-text-primary: #a9b1d6; /* Títulos e texto forte */
+        --dark-text-secondary: #c0c5d7; /* Texto comum */
+        --dark-text-muted: #6b7280;
+        --dark-accent: #6366f1; /* Um roxo/azul para seleção */
+    }
+
+    /* O container de 3 colunas */
+    .config-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 20px;
+        align-items: flex-start;
+    }
+
+    /* Estilo da coluna (card escuro) */
+    .config-column {
+        background-color: var(--dark-bg-secondary);
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        height: 100%;
+        border: 1px solid var(--dark-border);
+    }
+
+    .config-column h3 {
+        margin-top: 0;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--dark-border);
+        color: var(--dark-text-primary);
+        font-weight: 600;
+    }
+
+    .config-column p.column-subtitle {
+        font-size: 0.9em;
+        color: var(--dark-text-muted);
+        margin-top: -10px;
+        margin-bottom: 15px;
+    }
+
+    /* Lista de usuários */
+    .user-list {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+        min-height: 400px; /* Garante altura para a área */
+        max-height: 60vh;
+        overflow-y: auto;
+        padding-right: 5px; /* Espaço para a barra de rolagem */
+    }
+
+    /* Cartão de usuário individual */
+    .user-card {
+        display: flex;
+        align-items: center;
+        background-color: var(--dark-bg-secondary);
+        border: 1px solid var(--dark-border);
+        border-radius: 6px;
+        padding: 12px 10px;
+        margin-bottom: 8px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        cursor: pointer;
+        transition: background-color 0.2s, border-color 0.2s;
+    }
+
+    .user-card:hover {
+        background-color: #3a3e4c; /* Um pouco mais claro no hover */
+    }
+
+    .user-card-info {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        margin-left: 12px;
+    }
+    .user-card-info .user-name {
+        font-weight: 600;
+        color: var(--dark-text-secondary);
+    }
+    .user-card-info small {
+        color: var(--dark-text-muted);
+        font-size: 0.85em;
+    }
+
+    /* Feedback visual ao clicar no card */
+    .user-card.selected {
+        border-color: var(--dark-accent);
+        background-color: #353945;
+        box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+    }
+
+    /* Botão de mover (seta) */
+    .queue-move-btn {
+        background-color: transparent;
+        border: 1px solid var(--dark-border);
+        color: var(--dark-text-primary);
+        padding: 6px 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-left: 10px; /* Espaço entre info e botão */
+    }
+
+    .queue-move-btn:hover {
+        background-color: var(--dark-accent);
+        color: white;
+        border-color: var(--dark-accent);
+    }
+    
+    /* Posição da seta (na sua imagem original, ela está no fim) */
+    .user-card-info { order: 1; }
+    .queue-move-btn { order: 2; }
+    
+    /* --- Formulário de Detalhes (Coluna 3) --- */
+    .details-placeholder {
+        padding: 20px;
+        text-align: center;
+        color: var(--dark-text-muted);
+    }
+    .details-placeholder .fa-hand-pointer {
+        font-size: 2em;
+        margin-bottom: 10px;
+    }
+    .details-content h4 {
+        color: var(--dark-text-primary);
+    }
+
+    /* Inputs e Labels com tema escuro */
+    .input-group label {
+        color: var(--dark-text-secondary);
+    }
+    .input-group input[type="text"],
+    .input-group input[type="time"] {
+        background-color: var(--dark-bg-primary);
+        border: 1px solid var(--dark-border);
+        color: var(--dark-text-secondary);
+    }
+    .input-group input[type="text"]:focus,
+    .input-group input[type="time"]:focus {
+        border-color: var(--dark-accent);
+        box-shadow: 0 0 5px rgba(99, 102, 241, 0.3);
+    }
+    
+    /* --- Botões de Salvar --- */
+    .save-button-container {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid var(--dark-border);
+        text-align: right;
+    }
+    .btn-save {
+        padding: 10px 15px;
+        font-size: 1em;
+        font-weight: 600;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.2s, box-shadow 0.2s;
+    }
+    .btn-save i {
+        margin-right: 8px;
+    }
+
+    /* Botão Primário (Salvar Fila) */
+    .btn-save-primary {
+        background-color: #28a745; /* Verde */
+        color: white;
+    }
+    .btn-save-primary:hover {
+        background-color: #218838;
+    }
+
+    /* Botão Secundário (Salvar Detalhes) */
+    .btn-save-secondary {
+        background-color: #007bff; /* Azul */
+        color: white;
+    }
+    .btn-save-secondary:hover {
+        background-color: #0069d9;
+    }
+    
+    /* Responsividade */
+    @media (max-width: 1200px) {
+        .config-container {
+            grid-template-columns: 1fr 1fr; /* 2 colunas */
+        }
+        .config-column:nth-child(3) {
+            grid-column: 1 / span 2; /* Coluna de detalhes ocupa a largura total */
+        }
+    }
+    @media (max-width: 768px) {
+        .config-container {
+            grid-template-columns: 1fr; /* 1 coluna */
+        }
+        .config-column:nth-child(3) {
+            grid-column: auto;
+        }
+    }
+
+</style>
+{% endblock %}
+
+
 {% block content %}
 
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -14,11 +226,11 @@
         {% endif %}
     {% endwith %}
 
-    <div class="notify-section">
+    <div class="notify-section" style="background-color: var(--dark-bg-secondary); border-color: var(--dark-border);">
         <div class="notify-box">
             <div class="notify-info">
-                <h4>Lembrete de Início de Dia</h4>
-                <p>Clique no botão para enviar uma notificação para o atendente que está atualmente na vez na fila.</p>
+                <h4 style="color: var(--dark-text-primary);">Lembrete de Início de Dia</h4>
+                <p style="color: var(--dark-text-secondary);">Clique no botão para enviar uma notificação para o atendente que está atualmente na vez na fila.</p>
             </div>
             <form method="POST" action="{{ url_for('notificar_atendente_atual') }}" style="margin: 0;">
                 <button type="submit" class="btn btn-notify">
@@ -27,10 +239,13 @@
             </form>
         </div>
     </div>
-    <form class="config-form" method="POST" action="{{ url_for('configurar_fila') }}">
+    
     <div class="config-container">
-        <div class="config-column">
+
+        <div class="config-column" id="available-column">
             <h3>Usuários Disponíveis</h3>
+            <p class="column-subtitle">(Clique na seta para adicionar à fila)</p>
+            
             <ul class="user-list" id="available-users-list">
                 {% for user in all_users %}
                     {% if user.id not in queue_user_ids %}
@@ -39,36 +254,57 @@
                             <span class="user-name">{{ user.name }}</span>
                             <small>{{ user.username }}</small>
                         </div>
-                        <button type="button" class="move-btn add" title="Adicionar à fila">→</button>
+                        <button type="button" class="queue-move-btn add" title="Adicionar à fila">
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
                     </li>
                     {% endif %}
                 {% endfor %}
             </ul>
         </div>
-
-        <div class="config-column">
-            <h3>Fila Ativa (Arraste para ordenar)</h3>
+        
+        <div class="config-column" id="active-queue-column">
+            <h3>Fila Ativa</h3>
+            <p class="column-subtitle">(Clique na seta para remover)</p>
+            
             <ul class="user-list" id="active-queue-list">
                 {% for member in queue_members %}
                 <li class="user-card" data-user-id="{{ member.user.id }}">
-                       <button type="button" class="move-btn remove" title="Remover da fila">←</button>
                     <div class="user-card-info">
                         <span class="user-name">{{ member.user.name }}</span>
                         <small>{{ member.user.username }}</small>
                     </div>
+                    <button type="button" class="queue-move-btn remove" title="Remover da fila">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
                 </li>
                 {% endfor %}
             </ul>
+
+            <form method="POST" action="{{ url_for('configurar_fila') }}" id="queue-form">
+                {{ form.hidden_tag() }} <input type="hidden" id="queue-order-input" name="queue_order">
+                
+                <div class="save-button-container">
+                    <button type="submit" class="btn-save btn-save-primary">
+                        <i class="fa-solid fa-save"></i> Salvar Ordem da Fila
+                    </button>
+                </div>
+            </form>
         </div>
 
-        <div class="config-column">
+
+        <div class="config-column" id="details-column">
             <h3>Detalhes do Usuário</h3>
-            <div id="details-form">
-                <div class="details-placeholder">
-                    <p>Clique em um usuário para ver os detalhes.</p>
+            
+            <form method="POST" action="{{ url_for('configurar_fila') }}" id="details-form">
+                {{ form.hidden_tag() }} <div class="details-placeholder" id="details-placeholder">
+                    <i class="fa-solid fa-hand-pointer"></i>
+                    <p>Clique em um usuário (em qualquer lista) para ver ou editar seus detalhes.</p>
                 </div>
-                <div class="details-content hidden">
-                    <h4 id="details-user-name"></h4>
+                
+                <div class="details-content hidden" id="details-content">
+                    <h4 id="details-user-name" style="margin-bottom: 20px;"></h4>
+                    
                     <div class="input-group">
                         <label for="discord_id">ID do Usuário do Discord</label>
                         <input type="text" id="discord_id" name="discord_id_details">
@@ -81,38 +317,47 @@
                         <label for="lunch_end">Fim do Almoço</label>
                         <input type="time" id="lunch_end" name="lunch_end_details">
                     </div>
+                    
                     <input type="hidden" id="details_user_id" name="details_user_id">
                     
+                    <div class="save-button-container">
+                        <button type="submit" class="btn-save btn-save-secondary">
+                            <i class="fa-solid fa-user-edit"></i> Salvar Detalhes
+                        </button>
+                    </div>
                 </div>
-            </div>
+            </form>
         </div>
-    </div>
 
-    <input type="hidden" id="queue-order-input" name="queue_order">
-</form>
-{% endblock %}
+    </div> {% endblock %}
 
 {% block scripts %}
-{{ super() }} <script src="{{ url_for('static', filename='js/sortable.min.js') }}"></script>
+{{ super() }} 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const availableList = document.getElementById('available-users-list');
     const activeList = document.getElementById('active-queue-list');
-    const queueOrderInput = document.getElementById('queue-order-input');
-    const form = document.querySelector('.config-form');
     
-    // Elementos do formulário de detalhes
-    const detailsContent = document.querySelector('.details-content');
-    const detailsPlaceholder = document.querySelector('.details-placeholder');
+    // Formulários
+    const queueForm = document.getElementById('queue-form');
+    const detailsForm = document.getElementById('details-form');
+    
+    // Input escondido da fila
+    const queueOrderInput = document.getElementById('queue-order-input');
+    
+    // Elementos do formulário de detalhes (Coluna 3)
+    const detailsContent = document.getElementById('details-content');
+    const detailsPlaceholder = document.getElementById('details-placeholder');
     const detailsUserName = document.getElementById('details-user-name');
     const discordIdInput = document.getElementById('discord_id');
     const lunchStartInput = document.getElementById('lunch_start');
     const lunchEndInput = document.getElementById('lunch_end');
     const detailsUserIdInput = document.getElementById('details_user_id');
 
-    let selectedUserId = null; // Guarda o ID do usuário atualmente selecionado nos detalhes
+    let selectedUserId = null; // Guarda o ID do usuário atualmente selecionado
 
-    // Função para buscar e exibir os detalhes do usuário
+    // --- 1. FUNÇÕES DE DETALHES DO USUÁRIO ---
+
     function fetchUserDetails(userId, userName) {
         fetch(`/get_user_details/${userId}`)
             .then(response => response.json())
@@ -121,91 +366,106 @@ document.addEventListener('DOMContentLoaded', function () {
                 discordIdInput.value = data.discord_id || '';
                 lunchStartInput.value = data.lunch_start || '';
                 lunchEndInput.value = data.lunch_end || '';
-                detailsUserIdInput.value = userId; // Guarda o ID no input hidden
+                detailsUserIdInput.value = userId;
                 
-                // Mostra a seção de detalhes e esconde o placeholder
                 detailsPlaceholder.classList.add('hidden');
                 detailsContent.classList.remove('hidden');
             })
-            .catch(error => {
-                console.error("Erro ao buscar detalhes do usuário:", error);
-                // Opcional: Mostrar mensagem de erro para o usuário
-                detailsPlaceholder.textContent = "Erro ao carregar detalhes.";
-                detailsPlaceholder.classList.remove('hidden');
-                detailsContent.classList.add('hidden');
-            });
+            .catch(error => console.error("Erro ao buscar detalhes:", error));
     }
 
-    // Função para marcar visualmente um usuário como selecionado
     function selectUserCard(userCard) {
-        // Remove a seleção de qualquer outro card
         document.querySelectorAll('.user-card.selected').forEach(card => card.classList.remove('selected'));
-        // Adiciona a classe ao card clicado
         userCard.classList.add('selected');
     }
     
-    // Delegação de evento para cliques nas listas de usuários
-    document.querySelector('.config-container').addEventListener('click', function(event) {
-        const userCard = event.target.closest('.user-card');
-        if (!userCard) return; // Sai se o clique não foi em um card
-
-        const target = event.target;
-        const userId = userCard.dataset.userId;
-        const userName = userCard.querySelector('.user-name').textContent;
-        
-        // Clicar no botão de adicionar (→)
-        if (target.classList.contains('add')) {
-            activeList.appendChild(userCard); // Move o card para a fila ativa
-             // Opcional: Se o usuário movido era o selecionado, limpa os detalhes
-             if (selectedUserId === userId) clearDetails();
-        } 
-        // Clicar no botão de remover (←)
-        else if (target.classList.contains('remove')) {
-            availableList.appendChild(userCard); // Move o card para disponíveis
-             // Opcional: Se o usuário movido era o selecionado, limpa os detalhes
-             if (selectedUserId === userId) clearDetails();
-        }
-        // Clicar em qualquer outra parte do card (para ver detalhes)
-        else {
-            selectUserCard(userCard); // Marca visualmente
-            selectedUserId = userId; // Guarda o ID selecionado
-            fetchUserDetails(userId, userName); // Busca e mostra os detalhes
-        }
-    });
-
-    // Função para limpar o formulário de detalhes
     function clearDetails() {
          detailsUserName.textContent = '';
          discordIdInput.value = '';
          lunchStartInput.value = '';
          lunchEndInput.value = '';
-         detailsUserIdInput.value = ''; // Limpa o ID escondido
-         selectedUserId = null; // Reseta o ID selecionado
-         detailsPlaceholder.classList.remove('hidden'); // Mostra placeholder
-         detailsContent.classList.add('hidden'); // Esconde conteúdo
-         document.querySelectorAll('.user-card.selected').forEach(card => card.classList.remove('selected')); // Remove seleção visual
+         detailsUserIdInput.value = '';
+         selectedUserId = null;
+         detailsPlaceholder.classList.remove('hidden');
+         detailsContent.classList.add('hidden');
+         document.querySelectorAll('.user-card.selected').forEach(card => card.classList.remove('selected'));
     }
 
-    // Ativa o "arrastar e soltar" para reordenar a Fila Ativa
-    new Sortable(activeList, {
-        animation: 150,
-        ghostClass: 'card-ghost', // Classe para o "fantasma" do item sendo arrastado
-        // Opcional: onEnd pode ser usado para feedback visual ou lógica extra ao soltar
-        // onEnd: function (evt) {
-        //     console.log('Ordem da fila alterada.');
-        // }
+    // Função para limpar detalhes se o usuário movido for o selecionado
+    function clearDetailsIfSelected(movedUserId) {
+        if (selectedUserId === movedUserId) {
+            clearDetails();
+        }
+    }
+
+    // --- 2. EVENT LISTENER PRINCIPAL (DELEGAÇÃO) ---
+
+    document.querySelector('.config-container').addEventListener('click', function(event) {
+        const userCard = event.target.closest('.user-card');
+        if (!userCard) return; // Sai se o clique não foi em um card
+
+        const userId = userCard.dataset.userId;
+        const moveBtn = event.target.closest('.queue-move-btn');
+
+        // --- LÓGICA 1: CLICOU NO BOTÃO DE SETA? ---
+        if (moveBtn) {
+            event.stopPropagation(); // Impede o clique de selecionar o card
+            
+            const icon = moveBtn.querySelector('i');
+
+            if (moveBtn.classList.contains('add')) {
+                // Mover para Fila Ativa
+                activeList.appendChild(userCard);
+                // Mudar o botão
+                moveBtn.classList.remove('add');
+                moveBtn.classList.add('remove');
+                moveBtn.title = "Remover da fila";
+                icon.classList.remove('fa-arrow-right');
+                icon.classList.add('fa-arrow-left');
+            
+            } else if (moveBtn.classList.contains('remove')) {
+                // Mover para Usuários Disponíveis
+                availableList.appendChild(userCard);
+                // Mudar o botão
+                moveBtn.classList.remove('remove');
+                moveBtn.classList.add('add');
+                moveBtn.title = "Adicionar à fila";
+                icon.classList.remove('fa-arrow-left');
+                icon.classList.add('fa-arrow-right');
+            }
+            
+            // Se o usuário movido era o que estava selecionado, limpa os detalhes
+            clearDetailsIfSelected(userId);
+        
+        // --- LÓGICA 2: CLICOU NO CARD (PARA VER DETALHES)? ---
+        } else {
+            const userName = userCard.querySelector('.user-name').textContent;
+            selectUserCard(userCard);
+            selectedUserId = userId;
+            fetchUserDetails(userId, userName);
+        }
     });
 
-    // Antes de enviar o formulário principal, atualiza o input escondido com a ordem da fila
-    form.addEventListener('submit', function (event) {
+    // --- 3. EVENT LISTENERS DOS FORMULÁRIOS ---
+
+    // Antes de ENVIAR O FORMULÁRIO DA FILA
+    queueForm.addEventListener('submit', function (event) {
+        // Pega todos os IDs da *lista ativa*
         const userItemsInQueue = activeList.querySelectorAll('.user-card');
         const userIdsInOrder = Array.from(userItemsInQueue).map(li => li.dataset.userId);
+        
         queueOrderInput.value = userIdsInOrder.join(',');
-
-        // Os detalhes (discord_id_details, lunch_start_details, etc.) já estão
-        // nos inputs dentro da coluna 3 e serão enviados junto com o form.
-        // O `details_user_id` hidden garante que o backend saiba a qual usuário
-        // esses detalhes pertencem.
+        
+        // Garante que o ID de detalhes esteja limpo
+        // para que o backend saiba que é um save de FILA
+        detailsUserIdInput.value = '';
+    });
+    
+    // Antes de ENVIAR O FORMULÁRIO DE DETALHES
+    detailsForm.addEventListener('submit', function (event) {
+        // Garante que a ordem da fila esteja limpa
+        // para que o backend saiba que é um save de DETALHES
+        queueOrderInput.value = '';
     });
 });
 </script>

@@ -669,37 +669,103 @@ def atender_telefone():
 @app.route('/configurar-fila', methods=['GET', 'POST'])
 @login_required
 def configurar_fila():
-    if request.method == 'POST':
-        details_user_id = request.form.get('details_user_id')
-        if details_user_id and details_user_id.isdigit():
-            user_to_update = User.query.get(int(details_user_id))
-            if user_to_update:
-                user_to_update.discord_id = request.form.get('discord_id_details') or None
-                lunch_start_str = request.form.get('lunch_start_details')
-                lunch_end_str = request.form.get('lunch_end_details')
-                user_to_update.lunch_start = datetime.strptime(lunch_start_str, '%H:%M').time() if lunch_start_str else None
-                user_to_update.lunch_end = datetime.strptime(lunch_end_str, '%H:%M').time() if lunch_end_str else None
-        PhoneQueueMember.query.delete()
-        user_ids_in_order = request.form.get('queue_order', '').split(',')
-        if user_ids_in_order and user_ids_in_order[0]:
-            for i, user_id_str in enumerate(user_ids_in_order):
-                if user_id_str.isdigit():
-                    db.session.add(PhoneQueueMember(user_id=int(user_id_str), position=i))
-            state = PhoneQueueState.query.filter_by(key='current_user_id').first()
-            if not state:
-                db.session.add(PhoneQueueState(key='current_user_id', value=user_ids_in_order[0]))
-            else:
-                state.value = user_ids_in_order[0]
-        else:
-            PhoneQueueState.query.filter_by(key='current_user_id').delete()
-        db.session.commit()
-        flash("Fila e dados dos usuários atualizados com sucesso!", "success")
-        return redirect(url_for('configurar_fila'))
-    all_users = User.query.all()
-    queue_members = PhoneQueueMember.query.order_by(PhoneQueueMember.position).all()
-    queue_user_ids = {member.user_id for member in queue_members}
-    return render_template('configurar_fila.html', title="Configurar Fila", all_users=all_users, queue_members=queue_members, queue_user_ids=queue_user_ids)
+    
+    # Instancia um formulário base para o CSRF token
+    form = FlaskForm() 
 
+    if request.method == 'POST':
+        
+        # --- INÍCIO DA CORREÇÃO ---
+
+        # AÇÃO 1: Checa se a submissão é para SALVAR DETALHES DO USUÁRIO (do modal)
+        # O formulário do modal envia um 'details_user_id'
+        details_user_id = request.form.get('details_user_id')
+        
+        if details_user_id and details_user_id.isdigit():
+            # Se 'details_user_id' está presente, SÓ queremos salvar os dados do usuário.
+            user_to_update = db.session.get(User, int(details_user_id))
+            if user_to_update:
+                try:
+                    user_to_update.discord_id = request.form.get('discord_id_details') or None
+                    lunch_start_str = request.form.get('lunch_start_details')
+                    lunch_end_str = request.form.get('lunch_end_details')
+                    
+                    user_to_update.lunch_start = datetime.strptime(lunch_start_str, '%H:%M').time() if lunch_start_str else None
+                    user_to_update.lunch_end = datetime.strptime(lunch_end_str, '%H:%M').time() if lunch_end_str else None
+                    
+                    db.session.commit()
+                    flash(f"Dados de {user_to_update.name} atualizados.", "success")
+                
+                except ValueError:
+                    db.session.rollback()
+                    flash("Formato de hora do almoço inválido. Use HH:MM.", "danger")
+                except Exception as e:
+                    db.session.rollback()
+                    flash(f"Erro ao salvar dados do usuário: {e}", "danger")
+            
+            # Importante: Redireciona e PARA a execução aqui.
+            # Não continua para a lógica de apagar a fila.
+            return redirect(url_for('configurar_fila'))
+
+        # AÇÃO 2: Se NÃO for salvar detalhes, então é para SALVAR A ORDEM DA FILA
+        # (Esta parte só é executada se 'details_user_id' NÃO estava presente no POST)
+        else:
+            try:
+                # 1. Apaga a fila antiga do banco
+                PhoneQueueMember.query.delete()
+                
+                # 2. Pega a nova ordem do input escondido (preenchido pelo JS)
+                user_ids_in_order = request.form.get('queue_order', '').split(',')
+                
+                # Limpa valores vazios que podem vir do split (ex: '1,2,' ou '')
+                valid_user_ids = [uid for uid in user_ids_in_order if uid.isdigit()]
+                
+                if valid_user_ids:
+                    # 3. Cria a nova fila
+                    for i, user_id_str in enumerate(valid_user_ids):
+                        db.session.add(PhoneQueueMember(user_id=int(user_id_str), position=i))
+                        
+                    # 4. Atualiza o estado "current_user_id" para o primeiro da nova fila
+                    state = PhoneQueueState.query.filter_by(key='current_user_id').first()
+                    first_user_id = valid_user_ids[0]
+                    
+                    if not state:
+                        db.session.add(PhoneQueueState(key='current_user_id', value=first_user_id))
+                    else:
+                        state.value = first_user_id
+                        
+                    flash("Fila atualizada com sucesso! O atendente da vez foi redefinido.", "success")
+                    
+                else:
+                    # 5. Se a fila foi salva vazia, apaga o estado
+                    PhoneQueueState.query.filter_by(key='current_user_id').delete()
+                    flash("Fila salva como vazia.", "info")
+                    
+                # 6. Salva as alterações da fila (adições/deleções)
+                db.session.commit() 
+            
+            except Exception as e:
+                db.session.rollback()
+                flash(f"Erro ao salvar a fila: {e}", "danger")
+                
+            # Redireciona após salvar a fila
+            return redirect(url_for('configurar_fila'))
+        
+        # --- FIM DA CORREÇÃO ---
+
+    # --- LÓGICA GET (permanece a mesma) ---
+    all_users = User.query.order_by(User.name).all()
+    # Eager load (joinedload) para buscar o 'user' junto e evitar N+1 queries
+    queue_members = PhoneQueueMember.query.options(joinedload(PhoneQueueMember.user)).order_by(PhoneQueueMember.position).all()
+    queue_user_ids = {member.user_id for member in queue_members}
+    
+    # Passa o 'form' vazio para o template (para o hidden_tag do CSRF funcionar)
+    return render_template('configurar_fila.html', 
+                           title="Configurar Fila", 
+                           all_users=all_users, 
+                           queue_members=queue_members, 
+                           queue_user_ids=queue_user_ids,
+                           form=form)
 # Adicione esta nova rota em qualquer lugar no seu app.py
 
 @app.route('/fila/notificar-atual', methods=['POST'])
