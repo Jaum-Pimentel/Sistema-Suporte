@@ -4,7 +4,7 @@ import random
 from flask import Flask, render_template, url_for, redirect, flash, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, TextAreaField, SelectField, TimeField
+from wtforms import StringField, PasswordField, SubmitField, TextAreaField, SelectField, TimeField, BooleanField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError, Optional
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -31,8 +31,7 @@ import markdown # <-- ADICIONE ESTA
 from markupsafe import Markup #
 from sqlalchemy.orm import joinedload
 from functools import wraps
-from wtforms import StringField, PasswordField, SubmitField, TextAreaField, SelectField, TimeField, BooleanField # <-- ADICIONE BooleanField
-from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError, Optional
+
 # ------------------- 1. CONFIGURAÇÃO DA APLICAÇÃO -------------------
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
@@ -52,7 +51,7 @@ app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USERNAME'] = 'envioemailelev@gmail.com'  # <-- SEU E-MAIL DO GMAIL
-app.config['MAIL_PASSWORD'] = 'vvrr gppy likp iqgz'      # <-- SUA SENHA DE APP (veja abaixo)
+app.config['MAIL_PASSWORD'] = 'vvrr gppy likp iqgz'       # <-- SUA SENHA DE APP (veja abaixo)
 
 
 mail = Mail(app)
@@ -67,7 +66,8 @@ login_manager.login_view = 'login'
 CATEGORIAS_COMPORTAMENTO = [
     'Tarefa', 'Equipamento', 'Cliente', 'Produto', 'Colaborador', 
     'Financeiro', 'PMOC', 'Auvodesk', 'Auvochat','Orçamento', 'Relatorio', 'Projeto', 
-    'Configurações gerais', 'Check-list', 'Mapa', 'Integração', 'Outros'
+    'Configurações gerais', 'Check-list', 'Mapa', 'Integração', 'App', 'Km rodado', 'API', 'Tipo de tarefa'
+    'Cadastros', 'Outros'
 ]
 # --- ADICIONE PERTO DE CATEGORIAS_COMPORTAMENTO ---
 # Lista dos tipos de eventos que queremos registrar
@@ -123,6 +123,24 @@ def format_datetime_brt(dt):
         return dt_brt.strftime('%d/%m/%Y às %H:%M')
     except Exception:
         return "Data Inválida"
+
+# ------------------- NOVO HELPER PARA SENHA DE GESTOR -------------------
+def get_manager_password():
+    """Recupera a senha do banco. Se não existir config, cria a padrão 'Auvo123'."""
+    try:
+        # Tenta buscar a configuração (ID 1 fixo ou primeiro registro)
+        config = SystemConfig.query.first()
+        if not config:
+            # Se não existe, cria o padrão
+            config = SystemConfig(manager_password='Auvo123')
+            db.session.add(config)
+            db.session.commit()
+        return config.manager_password
+    except Exception as e:
+        print(f"Erro ao buscar senha de gestor: {e}")
+        return 'Auvo123' # Fallback de segurança
+# ------------------------------------------------------------------------
+
 # ------------------- 2. MODELOS DO BANCO DE DADOS -------------------
 @login_manager.user_loader
 def load_user(user_id):
@@ -136,48 +154,23 @@ class User(db.Model, UserMixin):
     password_hash = db.Column(db.String(128), nullable=False)
     discord_id = db.Column(db.String(50), nullable=True, unique=True)
     is_admin = db.Column(db.Boolean, nullable=False, default=False)
-    manager_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True) # <<< ADICIONADO AQUI
+    manager_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True) 
     lunch_start = db.Column(db.Time, nullable=True)
     lunch_end = db.Column(db.Time, nullable=True)
     ramal = db.Column(db.String(10), nullable=True)
     def set_password(self, password): self.password_hash = generate_password_hash(password)
     def check_password(self, password): return check_password_hash(self.password_hash, password)
 
-# Em app.py, na seção FORMULÁRIOS
+# --- MODELO DE CONFIGURAÇÃO DO SISTEMA (NOVO) ---
+class SystemConfig(db.Model):
+    __tablename__ = 'system_config'
+    id = db.Column(db.Integer, primary_key=True)
+    # Armazena a senha. O padrão inicial será 'Auvo123'
+    manager_password = db.Column(db.String(100), default='Auvo123', nullable=False)
 
-class AdminEditUserForm(FlaskForm):
-    # Armazena o ID do usuário original para validação
-    original_username = StringField('Username Original', validators=[DataRequired()])
-    original_email = StringField('Email Original', validators=[DataRequired()])
-    
-    # Campos editáveis
-    name = StringField('Nome Completo', validators=[DataRequired(), Length(min=2, max=150)])
-    username = StringField('Nome de Usuário (Login)', validators=[DataRequired(), Length(min=4, max=80)])
-    email = StringField('Email', validators=[DataRequired(), Email()])
-    discord_id = StringField('ID do Discord', validators=[Optional(), Length(min=17, max=20)])
-    
-    # Checkbox para status de admin
-    is_admin = BooleanField('É Administrador?')
-    
-    # Opção de resetar senha (admin não deve ver a senha antiga)
-    password = PasswordField('Nova Senha (Opcional)', validators=[Optional(), Length(min=6)])
-    confirm_password = PasswordField('Confirmar Nova Senha', validators=[EqualTo('password', message='As senhas não coincidem.')])
-    
-    submit = SubmitField('Salvar Alterações')
-
-    # Validador customizado para username (checa se já existe, ignorando o usuário atual)
-    def validate_username(self, username):
-        if username.data != self.original_username.data and User.query.filter_by(username=username.data).first():
-            raise ValidationError('Este nome de usuário já está em uso por outra conta.')
-
-    # Validador customizado para email
-    def validate_email(self, email):
-        if email.data != self.original_email.data and User.query.filter_by(email=email.data).first():
-            raise ValidationError('Este email já está em uso por outra conta.')
-
-class RequestResetForm(FlaskForm):
-    email = StringField('Email', validators=[DataRequired(), Email()])
-    submit = SubmitField('Redefinir Senha')
+    def __repr__(self):
+        return f"<SystemConfig>"
+# ------------------------------------------------
 
 class Column(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -307,7 +300,7 @@ class EventLog(db.Model):
     
     def __repr__(self):
         return f'<EventLog {self.id} por {self.user_id} em {self.timestamp}>'
-# --- FIM DOS NOVOS MODELOS ---   
+# --- FIM DOS NOVOS MODELOS ---    
 # --- DECORADOR DE ADMIN ---
 def admin_required(f):
     @wraps(f)
@@ -349,6 +342,57 @@ class Resposta(db.Model):
 # --- Fim Modelos de Dúvidas ---
 
 # ------------------- 3. FORMULÁRIOS (Flask-WTF) -------------------
+# --- NOVO FORMULÁRIO DE ALTERAÇÃO DE SENHA DO GESTOR ---
+class ChangeManagerPasswordForm(FlaskForm):
+    current_password = PasswordField('Senha Atual (Gestor)', 
+        validators=[DataRequired(), Length(max=100)],
+        render_kw={"placeholder": "Senha atual"}
+    )
+    new_password = PasswordField('Nova Senha (Gestor)', 
+        validators=[DataRequired(), Length(min=4, max=100)],
+        render_kw={"placeholder": "Mínimo 4 caracteres"}
+    )
+    confirm_new_password = PasswordField('Confirmar Nova Senha', 
+        validators=[DataRequired(), EqualTo('new_password', message='As senhas devem ser iguais.')],
+        render_kw={"placeholder": "Confirme a nova senha"}
+    )
+    submit = SubmitField('Salvar Nova Senha')
+# -------------------------------------------------------
+
+class AdminEditUserForm(FlaskForm):
+    # Armazena o ID do usuário original para validação
+    original_username = StringField('Username Original', validators=[DataRequired()])
+    original_email = StringField('Email Original', validators=[DataRequired()])
+    
+    # Campos editáveis
+    name = StringField('Nome Completo', validators=[DataRequired(), Length(min=2, max=150)])
+    username = StringField('Nome de Usuário (Login)', validators=[DataRequired(), Length(min=4, max=80)])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    discord_id = StringField('ID do Discord', validators=[Optional(), Length(min=17, max=20)])
+    
+    # Checkbox para status de admin
+    is_admin = BooleanField('É Administrador?')
+    
+    # Opção de resetar senha (admin não deve ver a senha antiga)
+    password = PasswordField('Nova Senha (Opcional)', validators=[Optional(), Length(min=6)])
+    confirm_password = PasswordField('Confirmar Nova Senha', validators=[EqualTo('password', message='As senhas não coincidem.')])
+    
+    submit = SubmitField('Salvar Alterações')
+
+    # Validador customizado para username (checa se já existe, ignorando o usuário atual)
+    def validate_username(self, username):
+        if username.data != self.original_username.data and User.query.filter_by(username=username.data).first():
+            raise ValidationError('Este nome de usuário já está em uso por outra conta.')
+
+    # Validador customizado para email
+    def validate_email(self, email):
+        if email.data != self.original_email.data and User.query.filter_by(email=email.data).first():
+            raise ValidationError('Este email já está em uso por outra conta.')
+
+class RequestResetForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    submit = SubmitField('Redefinir Senha')
+
 class RegistrationForm(FlaskForm):
     name = StringField('Nome Completo', validators=[DataRequired(), Length(min=2, max=150)])
     username = StringField('Nome de Usuário (Login)', validators=[DataRequired(), Length(min=4, max=80)])
@@ -1104,7 +1148,8 @@ def lancar_tempo():
 
     # Lógica para o formulário de lançamento INDIVIDUAL
     if form.validate_on_submit():
-        if form.manager_password.data == 'Auvo123':
+        # CORREÇÃO: Verifica a senha dinâmica
+        if form.manager_password.data == get_manager_password():
             try:
                 minutes, seconds = map(int, form.time_str.data.split(':'))
                 total_seconds = (minutes * 60) + seconds
@@ -1148,7 +1193,8 @@ def lancar_tempo_massa():
     record_date_str = request.form.get('record_date_mass') # << NOVO: Pega a data do formulário
 
     # Validações iniciais
-    if manager_password != 'Auvo123':
+    # CORREÇÃO: Verifica a senha dinâmica
+    if manager_password != get_manager_password():
         flash('Senha de gestor incorreta para o lançamento em massa.', 'danger')
         return redirect(url_for('lancar_tempo'))
     if not mass_data:
@@ -1222,8 +1268,8 @@ def remover_tempo(record_id):
     manager_password = request.form.get('manager_password')
     search_user_id = record_to_delete.user_id # Guarda o ID para o redirect
 
-    # 1. VERIFICA A SENHA DO GESTOR
-    if manager_password != 'Auvo123':
+    # 1. VERIFICA A SENHA DO GESTOR (DINÂMICA)
+    if manager_password != get_manager_password():
         flash('Senha de gestor incorreta.', 'danger')
     else:
         # 2. Se a senha estiver correta, prossegue com a remoção
@@ -1243,8 +1289,8 @@ def editar_tempo(record_id):
     # Pega a senha enviada pelo formulário do modal
     manager_password = request.form.get('manager_password')
 
-    # 1. VERIFICA A SENHA DO GESTOR
-    if manager_password != 'Auvo123':
+    # 1. VERIFICA A SENHA DO GESTOR (DINÂMICA)
+    if manager_password != get_manager_password():
         flash('Senha de gestor incorreta.', 'danger')
     else:
         # 2. Se a senha estiver correta, prossegue com a edição
@@ -1948,6 +1994,9 @@ def admin_dashboard():
     """Página principal do painel admin."""
     export_form = EventExportForm() 
     
+    # --- NOVO: Form de senha ---
+    password_form = ChangeManagerPasswordForm()
+    
     # --- Busca de Logs de Eventos (Existente) ---
     all_logs = EventLog.query.options(
         joinedload(EventLog.user),
@@ -1971,9 +2020,41 @@ def admin_dashboard():
                            title="Painel Admin", 
                            all_logs=all_logs,
                            export_form=export_form,
+                           password_form=password_form, # <-- Passando o form
                            pending_queries=pending_queries,   # <-- Passa para o template
                            answered_queries=answered_queries  # <-- Passa para o template
                           )
+
+# --- NOVA ROTA: ALTERAR SENHA DO GESTOR ---
+@app.route('/admin/change-manager-password', methods=['POST'])
+@login_required
+@admin_required
+def admin_change_manager_password():
+    form = ChangeManagerPasswordForm()
+    
+    if form.validate_on_submit():
+        config = SystemConfig.query.first()
+        if not config:
+            # Cria se não existir
+            config = SystemConfig(manager_password='Auvo123')
+            db.session.add(config)
+        
+        # Valida senha atual
+        if form.current_password.data != config.manager_password:
+            flash('A Senha Atual (Gestor) fornecida está incorreta.', 'danger')
+            return redirect(url_for('admin_dashboard'))
+
+        # Salva nova senha
+        config.manager_password = form.new_password.data
+        db.session.commit()
+        flash('A Senha de Gestor para Lançamento em Massa foi alterada com sucesso!', 'success')
+    else:
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f"Erro ao alterar senha: {error}", 'danger')
+
+    return redirect(url_for('admin_dashboard'))
+# -------------------------------------------
 
 @app.route('/admin/event/delete/<int:log_id>', methods=['POST'])
 @login_required

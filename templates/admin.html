@@ -3,7 +3,6 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block head_extra %}
-<!-- Adiciona Font Awesome (se não estiver no base.html) -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
 {% endblock %}
 
@@ -16,9 +15,7 @@
 
     {% include 'includes/_flash_messages.html' %} {# Inclui seus flashes #}
 
-    <!-- Grid para Ações Rápidas -->
     <div class="admin-grid">
-        <!-- Seção 1: Pular Fila -->
         <div class="admin-section">
             <h2><i class="fa-solid fa-phone-volume"></i> Gerenciar Fila Telefônica</h2>
             <p>Força a fila a avançar para o próximo atendente e envia a notificação.</p>
@@ -29,14 +26,11 @@
             </form>
         </div>
 
-        <!-- Seção 2: Exportar Eventos -->
         <div class="admin-section">
             <h2><i class="fa-solid fa-file-excel"></i> Exportar Log de Eventos</h2>
             <p>Selecione um período para exportar o log detalhado e o resumo de totais.</p>
-            <!-- Formulário de Exportação (requer 'export_form' da rota) -->
             <form method="POST" action="{{ url_for('exportar_eventos_log') }}" class="export-form">
-                {{ export_form.hidden_tag() }} <!-- CSRF Token -->
-                <div class="form-row">
+                {{ export_form.hidden_tag() }} <div class="form-row">
                     <div class="form-group">
                         {{ export_form.start_date.label(class="form-label") }}
                         {{ export_form.start_date(class="form-control") }}
@@ -49,10 +43,31 @@
                 {{ export_form.submit(class="btn btn-success") }}
             </form>
         </div>
-    </div>
-    <!-- Fim do Grid -->
 
-    <!-- Seção 3: Gerenciar Log de Eventos Recentes -->
+        <div class="admin-section">
+            <h2><i class="fa-solid fa-key"></i> Senha de Metas</h2>
+            <p>Altere a senha utilizada para lançar/remover tempos e metas em massa.</p>
+            
+            <form method="POST" action="{{ url_for('admin_change_manager_password') }}" class="export-form">
+                {{ password_form.hidden_tag() }} <div class="form-group" style="margin-bottom: 10px;">
+                    {{ password_form.current_password.label(class="form-label") }}
+                    {{ password_form.current_password(class="form-control") }}
+                </div>
+
+                <div class="form-group" style="margin-bottom: 10px;">
+                    {{ password_form.new_password.label(class="form-label") }}
+                    {{ password_form.new_password(class="form-control") }}
+                </div>
+
+                <div class="form-group" style="margin-bottom: 15px;">
+                    {{ password_form.confirm_new_password.label(class="form-label") }}
+                    {{ password_form.confirm_new_password(class="form-control") }}
+                </div>
+
+                {{ password_form.submit(class="btn btn-primary") }}
+            </form>
+        </div>
+    </div>
     <div class="admin-section" style="margin-top: 30px;">
         <h2><i class="fa-solid fa-history"></i> Gerenciar Log de Eventos Recentes</h2>
         <p>Aqui você pode remover os últimos registros de eventos incorretos.</p>
@@ -91,14 +106,10 @@
         </div>
     </div>
 
-    <!-- ===================================== -->
-    <!-- == NOVA SEÇÃO PARA GERENCIAR QUERIES == -->
-    <!-- ===================================== -->
     <div class="admin-section" style="margin-top: 30px;">
         <h2><i class="fa-solid fa-database"></i> Gerenciar Solicitações de Query</h2>
         <p>Aqui você pode remover solicitações de query pendentes ou já respondidas do sistema.</p>
 
-        <!-- Sub-seção para Queries Pendentes -->
         <h3 class="admin-subsection-title">Queries Pendentes</h3>
         <div class="log-table-container" style="max-height: 400px; overflow-y: auto; margin-top: 15px;">
             <table class="log-table">
@@ -133,7 +144,6 @@
             </table>
         </div>
 
-        <!-- Sub-seção para Queries Respondidas -->
         <h3 class="admin-subsection-title" style="margin-top: 25px;">Queries Respondidas</h3>
         <div class="log-table-container" style="max-height: 400px; overflow-y: auto; margin-top: 15px;">
             <table class="log-table">
@@ -170,11 +180,6 @@
             </table>
         </div>
     </div>
-    <!-- ===================================== -->
-    <!-- == FIM DA SEÇÃO DE QUERIES == -->
-    <!-- ===================================== -->
-
-    <!-- Seção 4: Outras Funções (Atualizada) -->
     <div class="admin-section" style="margin-top: 30px;">
         <h2><i class="fa-solid fa-cogs"></i> Outras Funções</h2>
         <p>Ferramentas administrativas adicionais.</p>
@@ -186,9 +191,6 @@
 
 </div>
 
-<!-- ============================================= -->
-<!-- == CSS COMPLETO E ATUALIZADO PARA ESTA PÁGINA == -->
-<!-- ============================================= -->
 <style>
     /* Estilos Gerais da Seção Admin */
     .admin-section {
@@ -213,7 +215,8 @@
     /* Grid para Ações do Topo */
     .admin-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        /* Alterado para que se adapte automaticamente a 3 colunas se houver espaço, ou quebre linha */
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); 
         gap: 30px;
         margin-bottom: 30px; 
     }

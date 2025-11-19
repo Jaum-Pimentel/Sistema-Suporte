@@ -1,23 +1,256 @@
 {% extends "base.html" %}
+
+{% block title %}Recuperar Acesso{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+{% endblock %}
+
 {% block content %}
-<div class="form-container">
+<style>
+    /* Container "Capa" - Cobre toda a tela e ignora o menu lateral */
+    .reset-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        z-index: 9999;
+        
+        /* Fundo Animado */
+        background: #0f0c29;
+        background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e, #180018);
+        background-size: 400% 400%;
+        animation: gradientBG 15s ease infinite;
+        
+        /* Centralização */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    @keyframes gradientBG {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    /* Formas flutuantes (Blobs) */
+    .blob {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(80px);
+        z-index: -1;
+        opacity: 0.6;
+    }
+    .blob-1 {
+        top: 15%;
+        left: 15%;
+        width: 400px;
+        height: 400px;
+        background: #d412d4;
+        animation: float 8s ease-in-out infinite;
+    }
+    .blob-2 {
+        bottom: 15%;
+        right: 15%;
+        width: 350px;
+        height: 350px;
+        background: #4cc9f0;
+        animation: float 10s ease-in-out infinite reverse;
+    }
+
+    @keyframes float {
+        0% { transform: translate(0, 0); }
+        50% { transform: translate(30px, 50px); }
+        100% { transform: translate(0, 0); }
+    }
+
+    /* Cartão de Vidro */
+    .form-box {
+        position: relative;
+        width: 100%;
+        max-width: 450px;
+        background: rgba(255, 255, 255, 0.04);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 24px;
+        padding: 50px 40px;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+        text-align: center;
+    }
+
+    /* Cabeçalho e Ícone */
+    .lock-icon-container {
+        width: 80px;
+        height: 80px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        border: 1px solid rgba(212, 18, 212, 0.3);
+        box-shadow: 0 0 20px rgba(212, 18, 212, 0.2);
+    }
+    .lock-icon-container i {
+        font-size: 2em;
+        color: #d412d4;
+    }
+
+    .form-header h2 {
+        color: #fff;
+        margin: 0 0 10px;
+        font-weight: 700;
+        font-size: 1.8em;
+    }
+    .form-header p {
+        color: #bcaec7;
+        font-size: 0.95em;
+        line-height: 1.5;
+        margin-bottom: 30px;
+    }
+
+    /* Inputs estilizados */
+    .input-group {
+        position: relative;
+        margin-bottom: 25px;
+        text-align: left;
+    }
+    .input-group label {
+        display: block;
+        color: #e0e0e0;
+        margin-bottom: 8px;
+        font-size: 0.9em;
+        font-weight: 500;
+        margin-left: 5px;
+    }
+    .input-icon {
+        position: absolute;
+        left: 15px;
+        top: 43px;
+        color: #d412d4;
+        z-index: 2;
+    }
+    .custom-input {
+        width: 100%;
+        padding: 14px 15px 14px 45px; /* Espaço para o ícone */
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        color: #fff;
+        font-size: 1em;
+        outline: none;
+        transition: all 0.3s ease;
+        box-sizing: border-box;
+    }
+    .custom-input:focus {
+        background: rgba(0, 0, 0, 0.5);
+        border-color: #d412d4;
+        box-shadow: 0 0 15px rgba(212, 18, 212, 0.3);
+    }
+
+    /* Botão */
+    .submit-btn {
+        width: 100%;
+        padding: 15px;
+        background: linear-gradient(90deg, #d412d4, #7b2cbf);
+        border: none;
+        border-radius: 12px;
+        color: #fff;
+        font-size: 1.1em;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        box-shadow: 0 5px 15px rgba(212, 18, 212, 0.3);
+    }
+    .submit-btn:hover {
+        background: linear-gradient(90deg, #f542f5, #9d4edd);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(212, 18, 212, 0.5);
+    }
+
+    /* Link de Voltar */
+    .form-actions {
+        margin-top: 25px;
+    }
+    .switch-form-link {
+        color: #a0a0a0;
+        text-decoration: none;
+        font-size: 0.9em;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: color 0.3s;
+    }
+    .switch-form-link:hover {
+        color: #fff;
+    }
+    .switch-form-link i {
+        font-size: 0.8em;
+    }
+
+    /* Flash Messages */
+    .flash {
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 0.9em;
+        text-align: center;
+    }
+    .flash.danger { background: rgba(220, 38, 38, 0.2); border: 1px solid #ef4444; color: #fca5a5; }
+    .flash.success { background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #6ee7b7; }
+    .flash.info { background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; color: #93c5fd; }
+</style>
+
+<div class="reset-container">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
     <div class="form-box">
+        <div class="lock-icon-container">
+            <i class="fa-solid fa-lock-open"></i>
+        </div>
+
         <div class="form-header">
             <h2>Redefinir Senha</h2>
-            <p>Digite seu e-mail para enviarmos uma nova senha.</p>
+            <p>Esqueceu a senha? Sem problemas.<br>Digite seu e-mail para receber uma nova.</p>
         </div>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
         
         <form method="POST" action="">
             {{ form.hidden_tag() }}
+            
             <div class="input-group">
                 {{ form.email.label }}
-                {{ form.email }}
+                <i class="fa-solid fa-envelope input-icon"></i>
+                {{ form.email(class="custom-input", placeholder="ex: seu@email.com") }}
+                
+                {% if form.email.errors %}
+                    <div style="color: #ff6b6b; font-size: 0.8em; margin-top: 5px;">
+                        {{ form.email.errors[0] }}
+                    </div>
+                {% endif %}
             </div>
             
-            {{ form.submit(class="submit-btn") }}
+            {{ form.submit(class="submit-btn", value="ENVIAR NOVA SENHA") }}
             
-            <div class="form-actions" style="margin-top: 15px;">
-                <a href="{{ url_for('login') }}" class="switch-form-link">Voltar ao Login</a>
+            <div class="form-actions">
+                <a href="{{ url_for('login') }}" class="switch-form-link">
+                    <i class="fa-solid fa-arrow-left"></i> Voltar ao Login
+                </a>
             </div>
         </form>
     </div>

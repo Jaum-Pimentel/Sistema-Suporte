@@ -4,19 +4,300 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Auvo Sup{% endblock %}</title>
+    
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/SupAuvologo.png') }}">
+    
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/SupAuvologo2.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
-    {% block head_extra %}{% endblock %} </head>
+
+    <style>
+        /* Reset e Base */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #0f0c29; /* Fundo base bem escuro */
+            color: #e0e0e0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Scrollbar Personalizada */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f0c29; }
+        ::-webkit-scrollbar-thumb { background: #302b63; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #d412d4; }
+
+        /* Layout Principal */
+        .main-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* --- SIDEBAR (Barra Lateral) --- */
+        .sidebar {
+            width: 280px;
+            background: rgba(19, 15, 40, 0.95);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            position: fixed; /* Fixa na esquerda */
+            top: 0;
+            left: 0;
+            height: 100vh;
+            z-index: 1000;
+            padding-top: 20px;
+            box-shadow: 5px 0 30px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-header {
+            text-align: center;
+            padding: 0 20px 30px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            margin-bottom: 20px;
+        }
+
+        /* Menu Lista */
+        .menu {
+            list-style: none;
+            padding: 0 15px;
+            flex-grow: 1;
+            overflow-y: auto; /* Permite rolar se o menu for grande */
+        }
+
+        .menu-item {
+            margin-bottom: 8px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        /* Links do Menu */
+        .menu a {
+            display: flex;
+            align-items: center;
+            padding: 14px 18px;
+            text-decoration: none;
+            color: #a0a0a0;
+            font-weight: 500;
+            font-size: 0.95em;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .menu-icon {
+            width: 24px;
+            margin-right: 12px;
+            font-size: 1.1em;
+            text-align: center;
+            transition: color 0.3s ease;
+        }
+
+        /* Hover e Active States */
+        .menu-item:hover > a,
+        .menu-item.active-link > a {
+            background: linear-gradient(90deg, rgba(212, 18, 212, 0.15), transparent);
+            color: #fff;
+        }
+
+        .menu-item:hover .menu-icon,
+        .menu-item.active-link .menu-icon {
+            color: #ff5ee5;
+            text-shadow: 0 0 10px rgba(255, 94, 229, 0.6);
+        }
+
+        /* Indicador lateral de ativo */
+        .menu-item.active-link > a::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 4px;
+            background: #d412d4;
+            box-shadow: 0 0 10px #d412d4;
+            border-radius: 0 4px 4px 0;
+        }
+
+        /* --- SUBMENU --- */
+        .submenu {
+            list-style: none;
+            padding-left: 20px; /* Indentação */
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-in-out, opacity 0.4s ease;
+            opacity: 0;
+            background: rgba(0, 0, 0, 0.2); /* Fundo levemente mais escuro */
+            border-radius: 0 0 12px 12px;
+            margin-top: -5px; /* Cola no item pai */
+            margin-bottom: 5px;
+        }
+
+        .menu-item.has-submenu.active .submenu {
+            max-height: 200px; /* Altura suficiente para os itens */
+            opacity: 1;
+            padding-top: 5px;
+            padding-bottom: 10px;
+        }
+        
+        /* Seta indicadora de submenu */
+        .menu-item.has-submenu > a::after {
+            content: '\f078'; /* FontAwesome chevron-down */
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            font-size: 0.7em;
+            margin-left: auto; /* Empurra para direita */
+            transition: transform 0.3s;
+        }
+        
+        .menu-item.has-submenu.active > a::after {
+            transform: rotate(180deg);
+        }
+
+        .submenu li a {
+            font-size: 0.85em;
+            padding: 10px 15px;
+            color: #888;
+        }
+        
+        .submenu li a:hover, .submenu li a.active-submenu-link {
+            color: #d412d4;
+            background: transparent;
+        }
+        
+        .submenu li a::before { display: none; } /* Remove a barra lateral dos filhos */
+
+        /* --- USER PROFILE (Footer da Sidebar) --- */
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(15, 12, 41, 0.8);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: background 0.3s;
+        }
+        .user-profile:hover {
+            background: rgba(255, 255, 255, 0.07);
+            border-color: rgba(212, 18, 212, 0.3);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #7b2cbf, #d412d4);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1em;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(212, 18, 212, 0.3);
+        }
+        .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+        .user-info {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .user-name {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #fff;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+
+        .user-role { font-size: 0.75em; color: #888; }
+
+        .user-profile-link { text-decoration: none; flex-grow: 1; display: flex; }
+
+        .admin-icon, .logout-icon {
+            color: #888;
+            font-size: 1em;
+            padding: 8px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        .admin-icon:hover { color: #4cc9f0; background: rgba(76, 201, 240, 0.1); }
+        .logout-icon:hover { color: #ff4d4d; background: rgba(255, 77, 77, 0.1); }
+
+        /* --- MAIN CONTENT AREA --- */
+        .content {
+            flex-grow: 1;
+            margin-left: 280px; /* Mesma largura da sidebar */
+            padding: 40px;
+            /* Fundo sutil para diferenciar da sidebar */
+            background-image: radial-gradient(circle at 10% 20%, rgba(123, 44, 191, 0.05) 0%, transparent 20%),
+                              radial-gradient(circle at 90% 80%, rgba(76, 201, 240, 0.05) 0%, transparent 20%);
+            min-height: 100vh;
+        }
+
+        /* Responsividade para Celular */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 70px; /* Sidebar encolhida */
+                padding-top: 10px;
+            }
+            .sidebar-header h1, .sidebar-header span { display: none; } /* Esconde logo texto */
+            .menu a span, .menu-item.has-submenu > a::after { display: none; } /* Esconde textos do menu */
+            .menu-icon { margin-right: 0; font-size: 1.4em; }
+            .content { margin-left: 70px; padding: 20px; }
+            .user-info { display: none; }
+            .sidebar:hover { width: 260px; } /* Expande ao passar mouse */
+            .sidebar:hover .menu a span { display: inline; margin-left: 10px; }
+            .sidebar:hover .sidebar-header h1, .sidebar:hover .sidebar-header span { display: inline-block; }
+            .sidebar:hover .user-info { display: flex; }
+        }
+    </style>
+    
+    {% block head_extra %}{% endblock %} 
+</head>
 <body>
     <div class="main-container">
         <nav class="sidebar">
             <div class="sidebar-header">
-                <h1 style="color: #d412d4ff; font-size: 2.8em;">AUVO</h1><span style="color: #d412d4ff; font-size: 1.8em;">SUP</span>
+                <div style="line-height: 1; cursor: default;">
+                    <h1 style="
+                        color: #ff5ee5; 
+                        font-size: 2.8em; 
+                        font-family: 'Poppins', sans-serif; 
+                        font-weight: 900; 
+                        margin: 0; padding: 0;
+                        text-shadow: 0 0 15px rgba(212, 18, 212, 0.3);
+                    ">AUVO</h1>
+                    <span style="
+                        color: #d412d4; 
+                        font-size: 1.2em; 
+                        font-family: 'Poppins', sans-serif; 
+                        font-weight: 300; 
+                        display: block; 
+                        margin-top: -5px; 
+                        letter-spacing: 4px;
+                        margin-left: 2px;
+                    ">SUP</span>
+                </div>
             </div>
+
             <ul class="menu">
                 <li class="menu-item">
                     <a href="{{ url_for('fila_telefonica') }}">
@@ -31,51 +312,56 @@
                         <span>Lembretes</span>
                     </a>
                 </li>
+
                 <li class="menu-item">
-                   <a href="{{ url_for('listar_eventos') }}">
-                       <i class="fa-solid fa-clipboard-list menu-icon"></i>
-                       <span>Registrar Eventos</span>
-                   </a>
-               </li>
+                    <a href="{{ url_for('listar_eventos') }}">
+                        <i class="fa-solid fa-clipboard-list menu-icon"></i>
+                        <span>Registrar Eventos</span>
+                    </a>
+                </li>
+
                 <li class="menu-item">
-                   <a href="{{ url_for('listar_duvidas') }}">
-                       <i class="fa-solid fa-question-circle menu-icon"></i> 
-                       <span>Dúvidas</span>
-                   </a>
-               </li>
-              <li class="menu-item">
+                    <a href="{{ url_for('listar_duvidas') }}">
+                        <i class="fa-solid fa-question-circle menu-icon"></i> 
+                        <span>Dúvidas</span>
+                    </a>
+                </li>
+
+                <li class="menu-item">
                     <a href="{{ url_for('minhas_metas') }}">
                         <i class="fa-solid fa-chart-line menu-icon"></i>
                         <span>Minhas Metas</span>
                     </a>
                 </li>
+
                 <li class="menu-item">
-                       <a class="nav-link" href="{{ url_for('list_queries') }}">
-                            <i class="fa-solid fa-database menu-icon"></i>
-                            <span>Query</span>
-                       </a>
+                     <a href="{{ url_for('list_queries') }}">
+                         <i class="fa-solid fa-database menu-icon"></i>
+                         <span>Query</span>
+                     </a>
                 </li>
-               <li class="menu-item">
-                   <a href="{{ url_for('listar_guias') }}">
-                       <i class="fa-solid fa-book-open menu-icon"></i>
-                       <span>Guias</span>
-                   </a>
-               </li>
 
-               <li class="menu-item">
-                   <a href="{{ url_for('listar_comportamentos') }}">
-                       <i class="fa-solid fa-cogs menu-icon"></i>
-                       <span>Comportamentos</span>
-                   </a>
-               </li>
+                <li class="menu-item">
+                    <a href="{{ url_for('listar_guias') }}">
+                        <i class="fa-solid fa-book-open menu-icon"></i>
+                        <span>Guias</span>
+                    </a>
+                </li>
 
+                <li class="menu-item">
+                    <a href="{{ url_for('listar_comportamentos') }}">
+                        <i class="fa-solid fa-cogs menu-icon"></i>
+                        <span>Comportamentos</span>
+                    </a>
+                </li>
               
-               <li class="menu-item">
-                   <a href="{{ url_for('links_uteis') }}">
-                       <i class="fa-solid fa-link menu-icon"></i>
-                       <span>Links Úteis</span>
-                   </a>
-               </li>
+                <li class="menu-item">
+                    <a href="{{ url_for('links_uteis') }}">
+                        <i class="fa-solid fa-link menu-icon"></i>
+                        <span>Links Úteis</span>
+                    </a>
+                </li>
+
                 <li class="menu-item has-submenu" id="tickets-menu">
                     <a href="#">
                         <i class="fa-solid fa-ticket menu-icon"></i>
@@ -86,7 +372,8 @@
                         <li><a href="{{ url_for('tickets_retornar') }}">Tickets para Retornar</a></li>
                     </ul>
                 </li>
-             <li class="menu-item has-submenu" id="demanda-menu">
+
+                <li class="menu-item has-submenu" id="demanda-menu">
                     <a href="#">
                         <i class="fa-solid fa-table-columns menu-icon"></i>
                         <span>Gerir Demanda </span>
@@ -96,9 +383,9 @@
                         <li><a href="{{ url_for('kanban_grupo') }}">Gestão em Grupo</a></li>
                     </ul>
                 </li>
-
             </ul>
-           <div class="sidebar-footer">
+
+            <div class="sidebar-footer">
                 {% if current_user.is_authenticated %}
                 <div class="user-profile">
                     <div class="user-avatar">
@@ -110,8 +397,10 @@
                     </div>
                     <a href="{{ url_for('profile') }}" class="user-profile-link" title="Editar Perfil">
                         <div class="user-info">
-                            <span class="user-name">{{ current_user.name }}</span>
-                            <span class="user-role">Atendente</span>
+                            <span class="user-name">{{ current_user.name.split()[0] }}</span>
+                            <span class="user-role">
+                                {% if current_user.is_admin %} Admin {% else %} Atendente {% endif %}
+                            </span>
                         </div>
                     </a>
                     
@@ -127,6 +416,7 @@
                 {% endif %}
             </div>
         </nav>
+
         <main class="content">
             {% block content %}{% endblock %}
         </main>
@@ -134,53 +424,56 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Lógica para abrir/fechar submenus
         const submenuToggles = document.querySelectorAll('.has-submenu > a');
 
         submenuToggles.forEach(function(toggle) {
             toggle.addEventListener('click', function(event) {
-                event.preventDefault();
+                event.preventDefault(); // Impede navegação no clique do pai
+                
+                // Fecha outros submenus abertos
                 document.querySelectorAll('.has-submenu.active').forEach(function(item) {
                     if (item !== toggle.parentElement) {
                         item.classList.remove('active');
                     }
                 });
+                
+                // Alterna o atual
                 this.parentElement.classList.toggle('active');
             });
         });
 
+        // Lógica para destacar o link ativo
         const currentPath = window.location.pathname;
-
-        // Tenta encontrar o link exato que corresponde ao path atual
         const activeLink = document.querySelector(`.menu a[href="${currentPath}"]`);
 
         if (activeLink) {
              const menuItem = activeLink.closest('.menu-item');
              if (menuItem && !menuItem.classList.contains('has-submenu')) {
-                 // Adiciona a classe ativa ao item de menu principal (se não for submenu)
                  menuItem.classList.add('active-link');
              } else {
-                 // Se for um link de submenu
+                 // Se for link de submenu
                  activeLink.classList.add('active-submenu-link');
                  const parentMenu = activeLink.closest('.menu-item.has-submenu');
                  if (parentMenu) {
-                     parentMenu.classList.add('active'); // Mantém o submenu pai aberto
-                     parentMenu.classList.add('active-link'); // Destaca o menu pai
+                     parentMenu.classList.add('active'); // Abre o menu
+                     parentMenu.classList.add('active-link'); // Destaca o pai
                  }
              }
         } else {
-             // Fallback para submenus baseados em includes (como estava antes)
+             // Fallbacks manuais caso a URL não bata exatamente (ex: query string ou rotas internas)
              if (currentPath.includes('/kanban/')) {
                  document.getElementById('demanda-menu')?.classList.add('active');
                  document.getElementById('demanda-menu')?.classList.add('active-link');
              }
-             if (currentPath.includes('/tickets-')) {
+             if (currentPath.includes('/tickets') || currentPath.includes('/ticket/')) {
                  document.getElementById('tickets-menu')?.classList.add('active');
                  document.getElementById('tickets-menu')?.classList.add('active-link');
              }
-             // Adicionar fallback para /duvidas/nova ou /duvidas/<id> se necessário
              if (currentPath.includes('/duvidas')) {
-                   const duvidasMenuItem = document.querySelector('a[href="{{ url_for('listar_duvidas') }}"]')?.closest('.menu-item');
-                   if(duvidasMenuItem) duvidasMenuItem.classList.add('active-link');
+                 // Procura o link base de dúvidas
+                 const link = document.querySelector('a[href*="duvidas"]');
+                 if(link) link.closest('.menu-item').classList.add('active-link');
              }
         }
     });

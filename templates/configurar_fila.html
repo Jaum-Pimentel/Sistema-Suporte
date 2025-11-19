@@ -7,33 +7,41 @@
 <style>
     /* --- Tema Escuro para Configurar Fila --- */
     
-    /* Cor de fundo principal, da sua imagem */
     :root {
         --dark-bg-primary: #1e2128;
         --dark-bg-secondary: #2c303a;
         --dark-border: #3b4049;
-        --dark-text-primary: #a9b1d6; /* Títulos e texto forte */
-        --dark-text-secondary: #c0c5d7; /* Texto comum */
+        --dark-text-primary: #a9b1d6;
+        --dark-text-secondary: #c0c5d7;
         --dark-text-muted: #6b7280;
-        --dark-accent: #6366f1; /* Um roxo/azul para seleção */
+        --dark-accent: #6366f1;
     }
 
-    /* O container de 3 colunas */
+    /* Container Principal */
     .config-container {
         display: grid;
         grid-template-columns: 1fr 1fr 1fr;
         gap: 20px;
-        align-items: flex-start;
+        align-items: start;
+        /* Define uma altura máxima para o grid para que ele não estoure a tela */
+        height: calc(100vh - 180px); 
     }
 
-    /* Estilo da coluna (card escuro) */
+    /* --- MUDANÇA PRINCIPAL AQUI --- */
+    /* O Card agora é um Flex Container Vertical */
     .config-column {
         background-color: var(--dark-bg-secondary);
         border-radius: 8px;
         padding: 20px;
         box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-        height: 100%;
         border: 1px solid var(--dark-border);
+        
+        /* Flexbox Magic para manter o botão fixo */
+        display: flex;
+        flex-direction: column;
+        height: 100%; /* Ocupa a altura definida no container pai */
+        max-height: 100%;
+        overflow: hidden; /* Impede que o card cresça além do limite */
     }
 
     .config-column h3 {
@@ -42,25 +50,39 @@
         border-bottom: 1px solid var(--dark-border);
         color: var(--dark-text-primary);
         font-weight: 600;
+        flex-shrink: 0; /* Impede o título de encolher */
     }
 
     .config-column p.column-subtitle {
         font-size: 0.9em;
         color: var(--dark-text-muted);
-        margin-top: -10px;
+        margin-top: 5px;
         margin-bottom: 15px;
+        flex-shrink: 0; /* Impede o subtítulo de encolher */
     }
 
-    /* Lista de usuários */
+    /* --- LISTA COM SCROLL INTERNO --- */
     .user-list {
         list-style-type: none;
         padding: 0;
         margin: 0;
-        min-height: 400px; /* Garante altura para a área */
-        max-height: 60vh;
+        padding-right: 5px; 
+        
+        /* Faz a lista ocupar todo o espaço disponível e rolar se necessário */
+        flex-grow: 1;
         overflow-y: auto;
-        padding-right: 5px; /* Espaço para a barra de rolagem */
+        min-height: 0; /* Crucial para o Firefox funcionar com flexbox scroll */
+        
+        /* Scrollbar fina para ficar bonito */
+        scrollbar-width: thin;
+        scrollbar-color: var(--dark-accent) var(--dark-bg-primary);
     }
+
+    /* Estilização da Scrollbar (Webkit/Chrome) */
+    .user-list::-webkit-scrollbar { width: 6px; }
+    .user-list::-webkit-scrollbar-track { background: var(--dark-bg-primary); }
+    .user-list::-webkit-scrollbar-thumb { background-color: var(--dark-border); border-radius: 10px; }
+    .user-list::-webkit-scrollbar-thumb:hover { background-color: var(--dark-accent); }
 
     /* Cartão de usuário individual */
     .user-card {
@@ -76,9 +98,7 @@
         transition: background-color 0.2s, border-color 0.2s;
     }
 
-    .user-card:hover {
-        background-color: #3a3e4c; /* Um pouco mais claro no hover */
-    }
+    .user-card:hover { background-color: #3a3e4c; }
 
     .user-card-info {
         display: flex;
@@ -86,23 +106,16 @@
         flex-grow: 1;
         margin-left: 12px;
     }
-    .user-card-info .user-name {
-        font-weight: 600;
-        color: var(--dark-text-secondary);
-    }
-    .user-card-info small {
-        color: var(--dark-text-muted);
-        font-size: 0.85em;
-    }
+    .user-card-info .user-name { font-weight: 600; color: var(--dark-text-secondary); }
+    .user-card-info small { color: var(--dark-text-muted); font-size: 0.85em; }
 
-    /* Feedback visual ao clicar no card */
     .user-card.selected {
         border-color: var(--dark-accent);
         background-color: #353945;
         box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
     }
 
-    /* Botão de mover (seta) */
+    /* Botão de mover */
     .queue-move-btn {
         background-color: transparent;
         border: 1px solid var(--dark-border);
@@ -111,105 +124,84 @@
         border-radius: 5px;
         cursor: pointer;
         transition: all 0.2s;
-        margin-left: 10px; /* Espaço entre info e botão */
+        margin-left: 10px;
     }
-
-    .queue-move-btn:hover {
-        background-color: var(--dark-accent);
-        color: white;
-        border-color: var(--dark-accent);
-    }
+    .queue-move-btn:hover { background-color: var(--dark-accent); color: white; border-color: var(--dark-accent); }
     
-    /* Posição da seta (na sua imagem original, ela está no fim) */
     .user-card-info { order: 1; }
     .queue-move-btn { order: 2; }
     
-    /* --- Formulário de Detalhes (Coluna 3) --- */
-    .details-placeholder {
-        padding: 20px;
-        text-align: center;
-        color: var(--dark-text-muted);
+    /* Formulário de Detalhes */
+    .details-placeholder { padding: 20px; text-align: center; color: var(--dark-text-muted); margin-top: 50px; }
+    .details-placeholder .fa-hand-pointer { font-size: 2em; margin-bottom: 10px; }
+    .details-content h4 { color: var(--dark-text-primary); margin-top: 0; }
+    
+    /* Ajuste para o conteúdo de detalhes rolar também se for grande */
+    #details-form {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
     }
-    .details-placeholder .fa-hand-pointer {
-        font-size: 2em;
-        margin-bottom: 10px;
-    }
-    .details-content h4 {
-        color: var(--dark-text-primary);
+    .details-content {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow-y: auto; /* Rola se os inputs forem muitos */
     }
 
-    /* Inputs e Labels com tema escuro */
-    .input-group label {
-        color: var(--dark-text-secondary);
+    .input-group { margin-bottom: 15px; }
+    .input-group label { display: block; margin-bottom: 5px; color: var(--dark-text-secondary); }
+    .input-group input[type="text"], .input-group input[type="time"] {
+        width: 100%; padding: 10px; background-color: var(--dark-bg-primary); border: 1px solid var(--dark-border); color: var(--dark-text-secondary); border-radius: 5px; box-sizing: border-box;
     }
-    .input-group input[type="text"],
-    .input-group input[type="time"] {
-        background-color: var(--dark-bg-primary);
-        border: 1px solid var(--dark-border);
-        color: var(--dark-text-secondary);
-    }
-    .input-group input[type="text"]:focus,
-    .input-group input[type="time"]:focus {
-        border-color: var(--dark-accent);
-        box-shadow: 0 0 5px rgba(99, 102, 241, 0.3);
-    }
+    .input-group input:focus { border-color: var(--dark-accent); outline: none; box-shadow: 0 0 5px rgba(99, 102, 241, 0.3); }
     
-    /* --- Botões de Salvar --- */
+    /* --- Botões de Salvar (FIXOS NO FUNDO) --- */
     .save-button-container {
-        margin-top: 20px;
-        padding-top: 20px;
+        margin-top: auto; /* Empurra para o fundo */
+        padding-top: 15px;
         border-top: 1px solid var(--dark-border);
         text-align: right;
+        background-color: var(--dark-bg-secondary); /* Garante fundo sólido */
+        flex-shrink: 0; /* Impede de encolher */
+        z-index: 10;
     }
+
     .btn-save {
-        padding: 10px 15px;
+        padding: 10px 20px;
         font-size: 1em;
         font-weight: 600;
         border: none;
         border-radius: 5px;
         cursor: pointer;
-        transition: background-color 0.2s, box-shadow 0.2s;
-    }
-    .btn-save i {
-        margin-right: 8px;
-    }
-
-    /* Botão Primário (Salvar Fila) */
-    .btn-save-primary {
-        background-color: #28a745; /* Verde */
-        color: white;
-    }
-    .btn-save-primary:hover {
-        background-color: #218838;
-    }
-
-    /* Botão Secundário (Salvar Detalhes) */
-    .btn-save-secondary {
-        background-color: #007bff; /* Azul */
-        color: white;
-    }
-    .btn-save-secondary:hover {
-        background-color: #0069d9;
+        transition: background-color 0.2s;
+        width: 100%; /* Botão largo fica melhor em mobile */
     }
     
+    .btn-save-primary { background-color: #28a745; color: white; }
+    .btn-save-primary:hover { background-color: #218838; }
+
+    .btn-save-secondary { background-color: #007bff; color: white; }
+    .btn-save-secondary:hover { background-color: #0069d9; }
+    
+    /* Notificação */
+    .notify-section { margin-bottom: 20px; padding: 15px; border-radius: 8px; border: 1px solid; display: flex; align-items: center; justify-content: space-between; }
+    .notify-info h4 { margin: 0 0 5px 0; font-size: 1.1em; }
+    .notify-info p { margin: 0; font-size: 0.9em; }
+    .btn-notify { padding: 8px 16px; background-color: #f59e0b; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; }
+    .btn-notify:hover { background-color: #d97706; }
+
     /* Responsividade */
     @media (max-width: 1200px) {
-        .config-container {
-            grid-template-columns: 1fr 1fr; /* 2 colunas */
-        }
-        .config-column:nth-child(3) {
-            grid-column: 1 / span 2; /* Coluna de detalhes ocupa a largura total */
-        }
+        .config-container { height: auto; grid-template-columns: 1fr 1fr; }
+        .config-column { height: 500px; } /* Altura fixa em telas médias */
+        .config-column:nth-child(3) { grid-column: 1 / span 2; }
     }
     @media (max-width: 768px) {
-        .config-container {
-            grid-template-columns: 1fr; /* 1 coluna */
-        }
-        .config-column:nth-child(3) {
-            grid-column: auto;
-        }
+        .config-container { display: flex; flex-direction: column; height: auto; }
+        .config-column { width: 100%; height: 450px; margin-bottom: 20px; }
     }
-
 </style>
 {% endblock %}
 
@@ -218,26 +210,24 @@
 
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-        <div class="flash-container">
+        <div class="flash-container" style="margin-bottom: 20px;">
             {% for category, message in messages %}
-            <div class="flash {{ category }}">{{ message }}</div>
+            <div class="flash {{ category }}" style="padding: 10px; border-radius: 5px; margin-bottom: 5px; text-align: center;">{{ message }}</div>
             {% endfor %}
         </div>
         {% endif %}
     {% endwith %}
 
     <div class="notify-section" style="background-color: var(--dark-bg-secondary); border-color: var(--dark-border);">
-        <div class="notify-box">
-            <div class="notify-info">
-                <h4 style="color: var(--dark-text-primary);">Lembrete de Início de Dia</h4>
-                <p style="color: var(--dark-text-secondary);">Clique no botão para enviar uma notificação para o atendente que está atualmente na vez na fila.</p>
-            </div>
-            <form method="POST" action="{{ url_for('notificar_atendente_atual') }}" style="margin: 0;">
-                <button type="submit" class="btn btn-notify">
-                    <i class="fa-solid fa-bell"></i> Notificar Atendente Atual
-                </button>
-            </form>
+        <div class="notify-info">
+            <h4 style="color: var(--dark-text-primary);">Lembrete de Início de Dia</h4>
+            <p style="color: var(--dark-text-secondary);">Clique no botão para enviar uma notificação para o atendente que está atualmente na vez na fila.</p>
         </div>
+        <form method="POST" action="{{ url_for('notificar_atendente_atual') }}" style="margin: 0;">
+            <button type="submit" class="btn btn-notify">
+                <i class="fa-solid fa-bell"></i> Notificar Atendente Atual
+            </button>
+        </form>
     </div>
     
     <div class="config-container">
@@ -281,8 +271,9 @@
                 {% endfor %}
             </ul>
 
-            <form method="POST" action="{{ url_for('configurar_fila') }}" id="queue-form">
-                {{ form.hidden_tag() }} <input type="hidden" id="queue-order-input" name="queue_order">
+            <form method="POST" action="{{ url_for('configurar_fila') }}" id="queue-form" style="margin-top: auto;">
+                {{ form.hidden_tag() }} 
+                <input type="hidden" id="queue-order-input" name="queue_order">
                 
                 <div class="save-button-container">
                     <button type="submit" class="btn-save btn-save-primary">
@@ -297,28 +288,31 @@
             <h3>Detalhes do Usuário</h3>
             
             <form method="POST" action="{{ url_for('configurar_fila') }}" id="details-form">
-                {{ form.hidden_tag() }} <div class="details-placeholder" id="details-placeholder">
+                {{ form.hidden_tag() }} 
+                
+                <div class="details-placeholder" id="details-placeholder">
                     <i class="fa-solid fa-hand-pointer"></i>
                     <p>Clique em um usuário (em qualquer lista) para ver ou editar seus detalhes.</p>
                 </div>
                 
                 <div class="details-content hidden" id="details-content">
-                    <h4 id="details-user-name" style="margin-bottom: 20px;"></h4>
-                    
-                    <div class="input-group">
-                        <label for="discord_id">ID do Usuário do Discord</label>
-                        <input type="text" id="discord_id" name="discord_id_details">
+                    <div style="flex-grow: 1;"> <h4 id="details-user-name" style="margin-bottom: 20px; border-bottom: 1px dashed var(--dark-border); padding-bottom: 10px;"></h4>
+                        
+                        <div class="input-group">
+                            <label for="discord_id">ID do Usuário do Discord</label>
+                            <input type="text" id="discord_id" name="discord_id_details" placeholder="Ex: 123456789">
+                        </div>
+                        <div class="input-group">
+                            <label for="lunch_start">Início do Almoço</label>
+                            <input type="time" id="lunch_start" name="lunch_start_details">
+                        </div>
+                        <div class="input-group">
+                            <label for="lunch_end">Fim do Almoço</label>
+                            <input type="time" id="lunch_end" name="lunch_end_details">
+                        </div>
+                        
+                        <input type="hidden" id="details_user_id" name="details_user_id">
                     </div>
-                    <div class="input-group">
-                        <label for="lunch_start">Início do Almoço</label>
-                        <input type="time" id="lunch_start" name="lunch_start_details">
-                    </div>
-                    <div class="input-group">
-                        <label for="lunch_end">Fim do Almoço</label>
-                        <input type="time" id="lunch_end" name="lunch_end_details">
-                    </div>
-                    
-                    <input type="hidden" id="details_user_id" name="details_user_id">
                     
                     <div class="save-button-container">
                         <button type="submit" class="btn-save btn-save-secondary">
@@ -329,7 +323,8 @@
             </form>
         </div>
 
-    </div> {% endblock %}
+    </div> 
+{% endblock %}
 
 {% block scripts %}
 {{ super() }} 
@@ -338,14 +333,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const availableList = document.getElementById('available-users-list');
     const activeList = document.getElementById('active-queue-list');
     
-    // Formulários
     const queueForm = document.getElementById('queue-form');
     const detailsForm = document.getElementById('details-form');
-    
-    // Input escondido da fila
     const queueOrderInput = document.getElementById('queue-order-input');
     
-    // Elementos do formulário de detalhes (Coluna 3)
     const detailsContent = document.getElementById('details-content');
     const detailsPlaceholder = document.getElementById('details-placeholder');
     const detailsUserName = document.getElementById('details-user-name');
@@ -354,10 +345,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const lunchEndInput = document.getElementById('lunch_end');
     const detailsUserIdInput = document.getElementById('details_user_id');
 
-    let selectedUserId = null; // Guarda o ID do usuário atualmente selecionado
+    let selectedUserId = null;
 
     // --- 1. FUNÇÕES DE DETALHES DO USUÁRIO ---
-
     function fetchUserDetails(userId, userName) {
         fetch(`/get_user_details/${userId}`)
             .then(response => response.json())
@@ -391,32 +381,26 @@ document.addEventListener('DOMContentLoaded', function () {
          document.querySelectorAll('.user-card.selected').forEach(card => card.classList.remove('selected'));
     }
 
-    // Função para limpar detalhes se o usuário movido for o selecionado
     function clearDetailsIfSelected(movedUserId) {
         if (selectedUserId === movedUserId) {
             clearDetails();
         }
     }
 
-    // --- 2. EVENT LISTENER PRINCIPAL (DELEGAÇÃO) ---
-
+    // --- 2. EVENT LISTENER PRINCIPAL ---
     document.querySelector('.config-container').addEventListener('click', function(event) {
         const userCard = event.target.closest('.user-card');
-        if (!userCard) return; // Sai se o clique não foi em um card
+        if (!userCard) return;
 
         const userId = userCard.dataset.userId;
         const moveBtn = event.target.closest('.queue-move-btn');
 
-        // --- LÓGICA 1: CLICOU NO BOTÃO DE SETA? ---
         if (moveBtn) {
-            event.stopPropagation(); // Impede o clique de selecionar o card
-            
+            event.stopPropagation();
             const icon = moveBtn.querySelector('i');
 
             if (moveBtn.classList.contains('add')) {
-                // Mover para Fila Ativa
                 activeList.appendChild(userCard);
-                // Mudar o botão
                 moveBtn.classList.remove('add');
                 moveBtn.classList.add('remove');
                 moveBtn.title = "Remover da fila";
@@ -424,20 +408,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 icon.classList.add('fa-arrow-left');
             
             } else if (moveBtn.classList.contains('remove')) {
-                // Mover para Usuários Disponíveis
                 availableList.appendChild(userCard);
-                // Mudar o botão
                 moveBtn.classList.remove('remove');
                 moveBtn.classList.add('add');
                 moveBtn.title = "Adicionar à fila";
                 icon.classList.remove('fa-arrow-left');
                 icon.classList.add('fa-arrow-right');
             }
-            
-            // Se o usuário movido era o que estava selecionado, limpa os detalhes
             clearDetailsIfSelected(userId);
         
-        // --- LÓGICA 2: CLICOU NO CARD (PARA VER DETALHES)? ---
         } else {
             const userName = userCard.querySelector('.user-name').textContent;
             selectUserCard(userCard);
@@ -446,25 +425,15 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // --- 3. EVENT LISTENERS DOS FORMULÁRIOS ---
-
-    // Antes de ENVIAR O FORMULÁRIO DA FILA
+    // --- 3. SUBMITS ---
     queueForm.addEventListener('submit', function (event) {
-        // Pega todos os IDs da *lista ativa*
         const userItemsInQueue = activeList.querySelectorAll('.user-card');
         const userIdsInOrder = Array.from(userItemsInQueue).map(li => li.dataset.userId);
-        
         queueOrderInput.value = userIdsInOrder.join(',');
-        
-        // Garante que o ID de detalhes esteja limpo
-        // para que o backend saiba que é um save de FILA
         detailsUserIdInput.value = '';
     });
     
-    // Antes de ENVIAR O FORMULÁRIO DE DETALHES
     detailsForm.addEventListener('submit', function (event) {
-        // Garante que a ordem da fila esteja limpa
-        // para que o backend saiba que é um save de DETALHES
         queueOrderInput.value = '';
     });
 });
