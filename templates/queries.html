@@ -2,10 +2,215 @@
 
 {% block title %}Solicitação de Queries{% endblock %}
 
+{% block head_extra %}
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500&display=swap">
+<style>
+    /* --- TEMA DARK NEON (Layout Ajustado) --- */
+
+    :root {
+        --glass-bg: rgba(30, 33, 48, 0.6);
+        --glass-border: rgba(255, 255, 255, 0.08);
+        --neon-purple: #d412d4;
+        --neon-blue: #4cc9f0;
+        --dark-input: rgba(15, 12, 41, 0.8);
+        --text-main: #e0e0e0;
+        --text-muted: #a0a0a0;
+    }
+
+    .page-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding-bottom: 50px;
+    }
+
+    .page-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 30px;
+        text-shadow: 0 0 15px rgba(212, 18, 212, 0.5);
+        text-align: center;
+        letter-spacing: 1px;
+    }
+
+    /* --- LAYOUT DO TOPO (Ações) --- */
+    .top-actions-container {
+        display: grid;
+        /* Define larguras fixas proporcionais para evitar que a largura mude ao abrir/fechar */
+        grid-template-columns: 1.5fr 1fr; 
+        gap: 25px;
+        margin-bottom: 40px;
+        align-items: start; /* Importante: faz com que a altura de um não estique o outro */
+    }
+
+    /* --- LAYOUT DE BAIXO (Listas) --- */
+    .results-container {
+        display: flex;
+        flex-direction: column;
+        gap: 40px;
+    }
+
+    /* Responsividade */
+    @media (max-width: 992px) {
+        .top-actions-container {
+            grid-template-columns: 1fr; /* Empilha no mobile */
+        }
+    }
+
+    /* --- ESTILO DOS CARDS --- */
+    .query-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        transition: border-color 0.2s;
+        margin-bottom: 15px;
+        width: 100%; /* Garante que o card ocupe a largura da coluna do grid */
+    }
+
+    .query-card:hover {
+        border-color: rgba(212, 18, 212, 0.4);
+    }
+    
+    /* --- HEADER DO CARD (Sempre visível e clicável) --- */
+    .query-header {
+        padding: 15px 20px;
+        background: rgba(255, 255, 255, 0.03);
+        border-bottom: 1px solid transparent; /* Borda transparente quando fechado */
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    
+    .query-card:hover .query-header {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* Quando aberto, adiciona a borda embaixo do header */
+    .query-card.active .query-header {
+        border-bottom: 1px solid var(--glass-border);
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .query-header h3 {
+        font-size: 1.1rem;
+        color: var(--neon-purple);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* Título e Info na Lista de Resultados */
+    .query-title { flex-grow: 1; }
+    .query-title p { margin: 0 0 4px 0; font-weight: 500; color: #fff; font-size: 1.05rem; }
+    .query-title small { color: var(--text-muted); font-size: 0.85rem; background: rgba(0,0,0,0.2); padding: 2px 8px; border-radius: 4px; }
+
+    /* Ícone de abrir/fechar */
+    .query-header i.fa-chevron-down {
+        color: var(--text-muted);
+        transition: transform 0.3s ease;
+    }
+    .query-card.active .query-header i.fa-chevron-down {
+        transform: rotate(180deg);
+        color: var(--neon-purple);
+    }
+
+    /* --- CORPO DO CARD (Collapsible) --- */
+    .query-body {
+        padding: 20px;
+        display: none; /* ESCONDIDO POR PADRÃO */
+    }
+    
+    /* Mostra quando tem a classe active */
+    .query-card.active .query-body {
+        display: block;
+        animation: fadeIn 0.3s;
+    }
+    
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* --- INPUTS E FORMS --- */
+    .form-group { margin-bottom: 15px; }
+    .form-label { display: block; color: var(--text-main); margin-bottom: 6px; font-size: 0.9rem; font-weight: 500; }
+    
+    .form-control {
+        width: 100%;
+        padding: 12px;
+        background: var(--dark-input);
+        border: 1px solid var(--glass-border);
+        border-radius: 8px;
+        color: #fff;
+        font-family: 'Poppins', sans-serif;
+        box-sizing: border-box;
+    }
+    .form-control:focus { outline: none; border-color: var(--neon-purple); }
+    
+    .code-input {
+        font-family: 'Fira Code', monospace;
+        background: #1e1e1e;
+        color: #a9b1d6;
+        font-size: 0.9rem;
+    }
+
+    /* --- BOTÕES --- */
+    .btn { padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s; width: 100%; }
+    .btn-primary { background: linear-gradient(45deg, #7b2cbf, var(--neon-purple)); color: #fff; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(212, 18, 212, 0.4); }
+    
+    .btn-search { background: transparent; border: 1px solid var(--neon-blue); color: var(--neon-blue); }
+    .btn-search:hover { background: rgba(76, 201, 240, 0.1); box-shadow: 0 0 10px rgba(76, 201, 240, 0.2); }
+
+    .btn-clear { display: block; text-align: center; margin-top: 10px; color: var(--text-muted); text-decoration: none; font-size: 0.85rem; }
+    .btn-clear:hover { color: #fff; }
+
+    /* --- CÓDIGO SQL --- */
+    .sql-code-block {
+        background: #1a1b26;
+        border-radius: 8px;
+        border: 1px solid #2f334d;
+        position: relative;
+        margin-top: 10px;
+    }
+    .sql-code-block pre { margin: 0; padding: 20px; overflow-x: auto; }
+    .sql-code-block code { font-family: 'Fira Code', monospace; color: #7aa2f7; line-height: 1.5; }
+
+    .copy-btn {
+        position: absolute; top: 10px; right: 10px;
+        background: rgba(255, 255, 255, 0.1); border: none; color: #fff;
+        padding: 5px 10px; border-radius: 4px; font-size: 0.8rem; cursor: pointer;
+        display: flex; align-items: center; gap: 5px;
+    }
+    .copy-btn:hover { background: var(--neon-purple); }
+
+    /* Títulos das Seções */
+    .section-title {
+        font-size: 1.4rem;
+        color: #fff;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-bottom: 1px solid var(--glass-border);
+        padding-bottom: 10px;
+    }
+    .section-title i { color: var(--neon-blue); }
+
+    .alert { padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; }
+    .alert-success { background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #6ee7b7; }
+    .alert-warning { background: rgba(245, 158, 11, 0.2); border: 1px solid #f59e0b; color: #fcd34d; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="page-container">
     <div class="page-header">
-        <h1>Solicitação de Queries</h1>
+        <h1><i class="fa-solid fa-database"></i> Painel de Queries</h1>
     </div>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -14,148 +219,192 @@
         {% endfor %}{% endif %}
     {% endwith %}
 
-    <div class="query-container">
-        <div class="query-actions-column">
-            <div class="query-card collapsible active">
-                <div class="query-header">
-                    <h3><i class="fa-solid fa-plus"></i> Formulário de Solicitação</h3>
-                    <i class="fa-solid fa-chevron-down"></i>
-                </div>
-                <div class="query-body">
-                    <form method="POST" action="{{ url_for('list_queries') }}">
-                        {{ request_form.hidden_tag() }}
-                        <div class="form-group">
-                            {{ request_form.description.label(class="form-label") }}
-                            {{ request_form.description(class="form-control", rows=5, placeholder="Descreva em detalhes o que a query precisa fazer...") }}
-                        </div>
-                        <div class="form-group">
-                            <button type="submit" name="submit_request" class="btn btn-primary">Enviar Solicitação</button>
-                        </div>
-                    </form>
-                </div>
+    <div class="top-actions-container">
+        
+        <div class="query-card collapsible {% if request_form.errors %}active{% endif %}">
+            <div class="query-header">
+                <h3><i class="fa-solid fa-plus-circle"></i> Nova Solicitação</h3>
+                <i class="fa-solid fa-chevron-down"></i>
             </div>
-
-            <div class="query-card" style="margin-top: 1.5rem;">
-                <div class="query-header static">
-                     <h3><i class="fa-solid fa-filter"></i> Filtro de Busca</h3>
-                </div>
-                <div class="query-body" style="display: block; padding-top: 1rem;">
-                    <form method="GET" action="{{ url_for('list_queries') }}" class="filter-form vertical">
-                        <div class="filter-group">
-                            <input type="search" name="search" class="form-control" placeholder="Filtrar por descrição..." value="{{ search_term or '' }}">
-                        </div>
-                        <div class="filter-checkbox-group">
-                            <input type="checkbox" name="show_mine" value="true" id="show_mine_checkbox" {% if show_mine %}checked{% endif %}>
-                            <label for="show_mine_checkbox">Mostrar somente minhas solicitações</label>
-                        </div>
-                        <div class="filter-group">
-                            <button type="submit" class="btn-search"><i class="fa-solid fa-search"></i> Buscar</button>
-                            {% if search_term or show_mine %}
-                                <a href="{{ url_for('list_queries') }}" class="btn-clear">Limpar</a>
-                            {% endif %}
-                        </div>
-                    </form>
-                </div>
+            <div class="query-body">
+                <form method="POST" action="{{ url_for('list_queries') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    {{ request_form.hidden_tag() }}
+                    <div class="form-group">
+                        {{ request_form.description.label(class="form-label") }}
+                        {{ request_form.description(class="form-control", rows=4, placeholder="Descreva o que a query precisa retornar (ex: Listar clientes ativos de SP)...") }}
+                    </div>
+                    <button type="submit" name="submit_request" class="btn btn-primary">
+                        <i class="fa-solid fa-paper-plane"></i> Enviar Pedido
+                    </button>
+                </form>
             </div>
         </div>
 
-        <div class="query-lists-column">
-            <section>
-                <h2><i class="fa-solid fa-hourglass-half"></i> Solicitações Pendentes</h2>
-                {% for query in pending_queries %}
-                    <div class="query-card collapsible">
-                        <div class="query-header">
-                            <div class="query-title">
-                                <p>{{ query.description }}</p>
-                                <small>Solicitado por: {{ query.requester.name }} em {{ query.created_at.strftime('%d/%m/%Y') }}</small>
-                            </div>
-                            <i class="fa-solid fa-chevron-down"></i>
-                        </div>
-                        <div class="query-body">
-                            <form method="POST" action="{{ url_for('answer_query', query_id=query.id) }}">
-                                {{ answer_form.hidden_tag() }}
-                                <div class="form-group">
-                                    {{ answer_form.sql_query.label(class="form-label") }}
-                                    {{ answer_form.sql_query(class="form-control code-input", rows=8, placeholder="Cole ou escreva o código SQL aqui...") }}
-                                </div>
-                                <div class="form-group">
-                                    {{ answer_form.submit(class="btn btn-primary") }}
-                                </div>
-                            </form>
-                        </div>
+        <div class="query-card collapsible {% if search_term or show_mine %}active{% endif %}">
+            <div class="query-header">
+                <h3><i class="fa-solid fa-search"></i> Filtrar & Buscar</h3>
+                <i class="fa-solid fa-chevron-down"></i>
+            </div>
+            <div class="query-body">
+                <form method="GET" action="{{ url_for('list_queries') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="form-group">
+                        <label class="form-label">Palavra-chave</label>
+                        <input type="search" name="search" class="form-control" placeholder="Ex: relatorio, financeiro..." value="{{ search_term or '' }}">
                     </div>
-                {% else %}
-                    <p>Nenhuma solicitação pendente encontrada para os filtros aplicados.</p>
-                {% endfor %}
-            </section>
+                    <div class="form-group" style="display: flex; align-items: center; gap: 10px; margin-top: 20px;">
+                        <input type="checkbox" name="show_mine" value="true" id="show_mine" {% if show_mine %}checked{% endif %} style="width: 18px; height: 18px; accent-color: var(--neon-purple);">
+                        <label for="show_mine" style="margin:0; cursor: pointer;">Somente minhas solicitações</label>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <button type="submit" class="btn btn-search"><i class="fa-solid fa-filter"></i> Aplicar Filtros</button>
+                        {% if search_term or show_mine %}
+                            <a href="{{ url_for('list_queries') }}" class="btn-clear">Limpar Filtros</a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
 
-            <section>
-                <h2><i class="fa-solid fa-check-double"></i> Queries Respondidas</h2>
-                {% for query in answered_queries %}
-                    <div class="query-card collapsible">
-                        <div class="query-header">
-                            <div class="query-title">
-                                <p>{{ query.description }}</p>
-                                <small>Por: {{ query.requester.name }} | Resp: {{ query.responder.name if query.responder else 'N/A' }}</small>
-                            </div>
-                            <i class="fa-solid fa-chevron-down"></i>
+    </div>
+
+    <div class="results-container">
+        
+        <div class="results-section">
+            <h2 class="section-title"><i class="fa-regular fa-clock"></i> Solicitações Pendentes</h2>
+            
+            {% for query in pending_queries %}
+                <div class="query-card collapsible">
+                    <div class="query-header">
+                        <div class="query-title">
+                            <p>{{ query.description }}</p>
+                            <small><i class="fa-solid fa-user"></i> {{ query.requester.name }} &nbsp;|&nbsp; <i class="fa-regular fa-calendar"></i> {{ query.created_at.strftime('%d/%m/%Y') }}</small>
                         </div>
-                        <div class="query-body">
-                            <div class="sql-code-block">
-                                <pre><code id="query-code-{{ query.id }}">{{ query.sql_query }}</code></pre>
-                                <button class="copy-btn" onclick="copyQuery(event, '{{ query.id }}')">
-                                    <i class="fa-regular fa-copy"></i> Copiar
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </div>
+                    <div class="query-body">
+                        <form method="POST" action="{{ url_for('answer_query', query_id=query.id) }}">
+                            {{ answer_form.hidden_tag() }}
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <div class="form-group">
+                                <label class="form-label"><i class="fa-solid fa-code"></i> Responder com SQL:</label>
+                                {{ answer_form.sql_query(class="form-control code-input", rows=6, placeholder="SELECT * FROM ...") }}
+                            </div>
+                            <div style="text-align: right;">
+                                <button type="submit" class="btn btn-primary" style="width: auto; padding: 8px 25px;">
+                                    <i class="fa-solid fa-check"></i> Enviar Resposta
                                 </button>
                             </div>
-                        </div>
+                        </form>
                     </div>
-                {% else %}
-                     <p>Nenhuma query respondida encontrada para os filtros aplicados.</p>
-                {% endfor %}
-            </section>
+                </div>
+            {% else %}
+                <div style="padding: 30px; text-align: center; border: 1px dashed var(--glass-border); border-radius: 12px; color: var(--text-muted);">
+                    Nenhuma solicitação pendente no momento.
+                </div>
+            {% endfor %}
         </div>
+
+        <div class="results-section">
+            <h2 class="section-title"><i class="fa-solid fa-check-double"></i> Queries Respondidas</h2>
+            
+            {% for query in answered_queries %}
+                <div class="query-card collapsible">
+    <div class="query-header">
+        <div class="query-title">
+            <p>{{ query.description }}</p>
+            
+            <small>
+                <span style="color: #b0b0b0; margin-right: 8px;">
+                    <i class="fa-solid fa-user"></i> Sol: {{ query.requester.name }}
+                </span>
+
+                <i class="fa-solid fa-arrow-right-long" style="color: #555; font-size: 0.8em;"></i>
+
+                <span style="color: #d412d4; margin-left: 8px; margin-right: 12px;">
+                    <i class="fa-solid fa-reply"></i> Resp: {{ query.responder.name if query.responder else 'N/A' }}
+                </span>
+
+                <span style="color: #6c757d; border-left: 1px solid #444; padding-left: 12px;">
+                    <i class="fa-regular fa-clock"></i> {{ query.created_at.strftime('%d/%m/%Y às %H:%M') }}
+                </span>
+            </small>
+
+        </div>
+        <i class="fa-solid fa-chevron-down"></i>
+    </div>
+    
+    <div class="query-body">
+        <div style="display: grid; grid-template-columns: 1fr; gap: 15px;">
+            <div>
+                <label class="form-label"><br>Código SQL:</label>
+                <div class="sql-code-block">
+                    <pre><code id="query-code-{{ query.id }}">{{ query.sql_query }}</code></pre>
+                    <button class="copy-btn" onclick="copyQuery(event, '{{ query.id }}')">
+                        <i class="fa-regular fa-copy"></i> Copiar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+            {% else %}
+                <div style="padding: 30px; text-align: center; border: 1px dashed var(--glass-border); border-radius: 12px; color: var(--text-muted);">
+                    Nenhuma query respondida encontrada.
+                </div>
+            {% endfor %}
+        </div>
+
     </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 {{ super() }}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/queries.css') }}">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap">
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Agora selecionamos TODOS os cards collapsible (inclusive os formulários do topo)
     const collapsibles = document.querySelectorAll('.query-card.collapsible');
+    
     collapsibles.forEach(card => {
         const header = card.querySelector('.query-header');
         header.addEventListener('click', (event) => {
-            event.stopPropagation();
+            if(event.target.tagName === 'BUTTON' || event.target.closest('button')) return; 
             card.classList.toggle('active');
         });
     });
 });
 
 function copyQuery(event, queryId) {
-    event.stopPropagation();
+    event.stopPropagation(); 
+    
     const codeBlock = document.getElementById('query-code-' + queryId);
     const textToCopy = codeBlock.innerText;
     const button = event.currentTarget;
+    
     const textArea = document.createElement('textarea');
     textArea.value = textToCopy;
     textArea.style.position = 'fixed';
     textArea.style.left = '-9999px';
     document.body.appendChild(textArea);
     textArea.select();
+    
     try {
         document.execCommand('copy');
-        const originalIcon = button.innerHTML;
+        const originalHTML = button.innerHTML;
+        
         button.innerHTML = '<i class="fa-solid fa-check"></i> Copiado!';
+        button.style.background = '#10b981';
         button.disabled = true;
+        
         setTimeout(() => {
-            button.innerHTML = originalIcon;
+            button.innerHTML = originalHTML;
+            button.style.background = '';
             button.disabled = false;
         }, 2000);
     } catch (err) {
-        console.error('Falha ao copiar texto: ', err);
+        console.error('Erro ao copiar', err);
     }
     document.body.removeChild(textArea);
 }

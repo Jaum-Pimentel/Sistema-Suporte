@@ -224,6 +224,7 @@
             <p style="color: var(--dark-text-secondary);">Clique no botão para enviar uma notificação para o atendente que está atualmente na vez na fila.</p>
         </div>
         <form method="POST" action="{{ url_for('notificar_atendente_atual') }}" style="margin: 0;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <button type="submit" class="btn btn-notify">
                 <i class="fa-solid fa-bell"></i> Notificar Atendente Atual
             </button>
@@ -274,6 +275,7 @@
             <form method="POST" action="{{ url_for('configurar_fila') }}" id="queue-form" style="margin-top: auto;">
                 {{ form.hidden_tag() }} 
                 <input type="hidden" id="queue-order-input" name="queue_order">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 
                 <div class="save-button-container">
                     <button type="submit" class="btn-save btn-save-primary">
@@ -289,7 +291,7 @@
             
             <form method="POST" action="{{ url_for('configurar_fila') }}" id="details-form">
                 {{ form.hidden_tag() }} 
-                
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <div class="details-placeholder" id="details-placeholder">
                     <i class="fa-solid fa-hand-pointer"></i>
                     <p>Clique em um usuário (em qualquer lista) para ver ou editar seus detalhes.</p>

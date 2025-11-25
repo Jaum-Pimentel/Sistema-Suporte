@@ -2,10 +2,368 @@
 
 {% block title %}{{ title }}{% endblock %}
 
+{% block head_extra %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+<style>
+    /* --- TEMA DARK NEON (COMPORTAMENTOS) --- */
+    :root {
+        --glass-bg: rgba(30, 33, 48, 0.6);
+        --glass-border: rgba(255, 255, 255, 0.08);
+        --neon-purple: #d412d4;
+        --neon-blue: #4cc9f0;
+        --text-main: #e0e0e0;
+        --text-muted: #a0a0a0;
+        --danger: #ff4d4d;
+        --dark-input: rgba(15, 12, 41, 0.6);
+    }
+
+    /* Layout Full Width */
+    .page-container {
+        width: 100%;
+        max-width: 99%;
+        margin: 0 auto;
+        padding: 20px 30px;
+        box-sizing: border-box;
+    }
+
+    /* Cabeçalho e Ações */
+    .page-header-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .page-title h1 {
+        font-size: 2rem;
+        color: #fff;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-shadow: 0 0 10px rgba(212, 18, 212, 0.3);
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        flex-grow: 1;
+        justify-content: flex-end;
+    }
+
+    /* Formulário de Filtro Unificado */
+    .filter-form {
+        display: flex;
+        gap: 10px;
+        width: 100%;
+        max-width: 500px;
+    }
+
+    .search-wrapper {
+        position: relative;
+        flex-grow: 1;
+    }
+    
+    .search-wrapper input {
+        width: 100%;
+        padding: 12px 15px 12px 45px;
+        border-radius: 50px;
+        border: 1px solid var(--glass-border);
+        background: rgba(0, 0, 0, 0.3);
+        color: #fff;
+        outline: none;
+        transition: border-color 0.3s;
+        box-sizing: border-box;
+    }
+    .search-wrapper input:focus { border-color: var(--neon-purple); }
+    
+    .search-icon {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+    }
+
+    .category-select {
+        padding: 12px 15px;
+        border-radius: 50px;
+        border: 1px solid var(--glass-border);
+        background: rgba(0, 0, 0, 0.3);
+        color: #fff;
+        outline: none;
+        cursor: pointer;
+        min-width: 150px;
+    }
+    .category-select option { background: #1a1b26; color: #fff; }
+
+    /* Botão Novo */
+    .action-btn {
+        background: linear-gradient(45deg, #7b2cbf, var(--neon-purple));
+        color: #fff;
+        padding: 10px 25px;
+        border-radius: 50px;
+        border: none;
+        text-decoration: none;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(123, 44, 191, 0.4);
+        transition: transform 0.2s;
+        white-space: nowrap;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 1rem;
+    }
+    .action-btn:hover { transform: translateY(-2px); color: #fff; }
+    .btn-search-hidden { display: none; }
+
+    /* Botão Limpar */
+    .btn-clear {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.9rem;
+        align-self: center;
+    }
+    .btn-clear:hover { color: #fff; }
+
+    /* --- FORMULÁRIO DE ADICIONAR (Hidden) --- */
+    .log-time-form {
+        background: var(--glass-bg);
+        backdrop-filter: blur(15px);
+        border: 1px solid var(--neon-purple);
+        border-radius: 16px;
+        padding: 30px;
+        margin-bottom: 40px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        animation: slideDown 0.3s ease-out;
+    }
+    
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .log-time-form h2 {
+        margin-top: 0;
+        color: var(--neon-purple);
+        border-bottom: 1px dashed var(--glass-border);
+        padding-bottom: 15px;
+        margin-bottom: 20px;
+    }
+
+    .form-group { margin-bottom: 20px; }
+    
+    .form-label {
+        display: block;
+        color: #fff;
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px;
+        background: var(--dark-input);
+        border: 1px solid var(--glass-border);
+        border-radius: 8px;
+        color: #fff;
+        font-family: 'Poppins', sans-serif;
+        font-size: 1rem;
+        box-sizing: border-box;
+    }
+    .form-control:focus { outline: none; border-color: var(--neon-blue); }
+
+    /* --- GRID DE COMPORTAMENTOS --- */
+    .guias-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+        gap: 25px;
+    }
+
+    /* Card */
+    .guia-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .guia-card:hover {
+        border-color: rgba(212, 18, 212, 0.4);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        transform: translateY(-3px);
+    }
+    
+    .guia-card.active {
+        border-color: var(--neon-purple);
+        background: rgba(25, 25, 40, 0.95); 
+        grid-column: 1 / -1; 
+    }
+
+    /* Header do Card */
+    .guia-header {
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.03);
+        border-bottom: 1px solid transparent;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        cursor: pointer;
+    }
+    
+    .guia-card.active .guia-header {
+        border-bottom: 1px solid var(--glass-border);
+        background: rgba(212, 18, 212, 0.1);
+    }
+
+    .guia-header-info h3 {
+        margin: 0 0 8px 0;
+        color: #fff;
+        font-size: 1.2rem;
+        line-height: 1.4;
+    }
+
+    .guia-meta {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .categoria-badge {
+        background: rgba(76, 201, 240, 0.1);
+        color: var(--neon-blue);
+        padding: 2px 10px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        border: 1px solid rgba(76, 201, 240, 0.3);
+    }
+
+    /* Ações do Header */
+    .guia-header-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-left: 20px;
+        flex-shrink: 0;
+    }
+
+    .guia-action-icon {
+        background: rgba(0,0,0,0.3);
+        border: 1px solid var(--glass-border);
+        color: var(--text-muted);
+        width: 32px; height: 32px;
+        border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        font-size: 0.9rem;
+    }
+    
+    .guia-action-icon:hover { color: #fff; border-color: #fff; }
+    .edit-icon:hover { color: var(--neon-blue); border-color: var(--neon-blue); }
+    .delete-icon:hover { color: var(--danger); border-color: var(--danger); }
+
+    .guia-action-form { margin: 0; display: inline; }
+
+    .expand-icon {
+        color: var(--text-muted);
+        margin-left: 10px;
+        transition: transform 0.3s;
+    }
+    .guia-card.active .expand-icon {
+        transform: rotate(180deg);
+        color: var(--neon-purple);
+    }
+
+    /* Corpo (Conteúdo) */
+    .guia-body {
+        display: none; 
+        padding: 30px;
+        color: var(--text-main);
+        line-height: 1.8;
+        font-size: 1rem;
+    }
+    
+    .guia-card.active .guia-body { display: block; animation: fadeIn 0.5s; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* Conteúdo Preformatado (PRE) */
+    .guia-content pre {
+        background: #1a1b26;
+        padding: 20px;
+        border-radius: 8px;
+        border: 1px solid var(--glass-border);
+        white-space: pre-wrap; /* Mantém quebras de linha */
+        font-family: 'Poppins', sans-serif; /* Mantém fonte padrão ou muda pra mono se preferir */
+        color: #e0e0e0;
+    }
+
+    /* Botão Primário */
+    .btn-primary {
+        background: var(--neon-purple); color: white; border: none; padding: 12px 25px; border-radius: 8px; 
+        cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; transition: background 0.3s;
+    }
+    .btn-primary:hover { background: #b90eb9; }
+
+    /* Flash Messages */
+    .alert { padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; }
+    .alert-success { background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #6ee7b7; }
+    .alert-danger { background: rgba(220, 38, 38, 0.2); border: 1px solid #ef4444; color: #fca5a5; }
+
+    @media (max-width: 768px) {
+        .guias-grid { grid-template-columns: 1fr; }
+        .page-header-container { flex-direction: column; align-items: flex-start; }
+        .header-actions { width: 100%; flex-direction: column; align-items: stretch; }
+        .filter-form { flex-direction: column; max-width: 100%; }
+        .action-btn { width: 100%; justify-content: center; }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="page-container">
-    <div class="page-header">
-        <h1>{{ title }}</h1>
+    
+    <div class="page-header-container">
+        <div class="page-title">
+            <h1><i class="fa-solid fa-cogs"></i> {{ title }}</h1>
+        </div>
+        
+        <div class="header-actions">
+            <form method="GET" action="{{ url_for('listar_comportamentos') }}" class="filter-form">
+                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <select name="categoria" class="category-select" onchange="this.form.submit()">
+                    <option value="">Todas as Categorias</option>
+                    {% for cat in categorias %}
+                    <option value="{{ cat }}" {% if cat == current_category %}selected{% endif %}>{{ cat }}</option>
+                    {% endfor %}
+                </select>
+                
+                <div class="search-wrapper">
+                    <i class="fa-solid fa-search search-icon"></i>
+                    <input type="search" name="q" placeholder="Pesquisar comportamento..." value="{{ q or '' }}">
+                    <button type="submit" class="btn-search-hidden"></button> </div>
+
+                {% if q or current_category %}
+                    <a href="{{ url_for('listar_comportamentos') }}" class="btn-clear">Limpar</a>
+                {% endif %}
+            </form>
+
+            <button id="toggle-form" class="action-btn">
+                <i class="fa-solid fa-plus"></i> Novo Comportamento
+            </button>
+        </div>
     </div>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -14,152 +372,127 @@
         {% endfor %}{% endif %}
     {% endwith %}
 
-    <div class="toggle-form-container">
-        <button id="toggle-form" class="action-btn resolve-btn">
-            <i class="fa-solid fa-plus"></i> Adicionar Comportamento
-        </button>
-    </div>
-    <div id="add-form-container" class="log-time-form" style="margin-bottom: 2rem; display: none;">
-        <h2>Adicionar Novo Comportamento</h2>
+    <div id="add-form-container" class="log-time-form" style="display: none;">
+        <h2><i class="fa-solid fa-pen-to-square"></i> Registrar Novo Comportamento</h2>
         <form method="POST" action="{{ url_for('listar_comportamentos') }}">
             {{ form.hidden_tag() }}
-            <div class="form-group">{{ form.titulo.label(class="form-label") }} {{ form.titulo(class="form-control") }}</div>
-            <div class="form-group">{{ form.categoria.label(class="form-label") }} {{ form.categoria(class="form-control") }}</div>
-            <div class="form-group">{{ form.conteudo.label(class="form-label") }} {{ form.conteudo(class="form-control", rows=10) }}</div>
-            {{ form.submit(class="btn btn-primary") }}
+             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="form-group">
+                {{ form.titulo.label(class="form-label") }} 
+                {{ form.titulo(class="form-control", placeholder="Ex: Erro ao sincronizar...") }}
+            </div>
+            
+            <div class="form-group">
+                {{ form.categoria.label(class="form-label") }} 
+                {{ form.categoria(class="form-control") }}
+            </div>
+            
+            <div class="form-group">
+                {{ form.conteudo.label(class="form-label") }} 
+                {{ form.conteudo(class="form-control", rows=12, placeholder="Passo a passo ou descrição detalhada...") }}
+            </div>
+            
+            {{ form.submit(class="btn-primary", value="Salvar Comportamento") }}
         </form>
     </div>
 
-    <hr style="border-color: #3a3a5a; margin: 2rem 0;">
-
-    <div class="history-header">
-        <h2>Comportamentos Publicados</h2>
-        <form method="GET" action="{{ url_for('listar_comportamentos') }}" class="filter-form">
-            <div class="filter-group">
-                <select name="categoria" class="form-control">
-                    <option value="">Todas as Categorias</option>
-                    {% for cat in categorias %}
-                    <option value="{{ cat }}" {% if cat == current_category %}selected{% endif %}>{{ cat }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="filter-group">
-                <input type="search" name="q" class="form-control" placeholder="Filtrar por título..." value="{{ q or '' }}">
-            </div>
-            <div class="filter-group">
-                <button type="submit" class="btn-search"><i class="fa-solid fa-search"></i> Buscar</button>
-                
-                {% if q or current_category %}
-                    <a href="{{ url_for('listar_comportamentos') }}" class="btn-clear">Limpar</a>
-                {% endif %}
-            </div>
-        </form>
-    </div>
-    
-    <div class="guias-grid" style="margin-top: 1.5rem;">
+    <div class="guias-grid">
     {% for comp in comportamentos %}
-    <div class="guia-card"> {# Pode renomear para 'comportamento-card' se quiser mais clareza #}
-        <div class="guia-header"> {# Pode renomear para 'comportamento-header' #}
-            <div class="guia-header-info"> {# Pode renomear #}
+    <div class="guia-card">
+        <div class="guia-header">
+            <div class="guia-header-info">
                 <h3>{{ comp.titulo }}</h3>
-                <div class="guia-meta"> {# Pode renomear #}
-                    <small>Por: {{ comp.author.name if comp.author else 'N/A' }} em {{ comp.created_at.strftime('%d/%m/%Y') }}</small>
-                    {# Movido categoria para header-actions para mais espaço #}
+                <div class="guia-meta">
+                    <span class="categoria-badge">{{ comp.categoria }}</span>
+                    <span><i class="fa-solid fa-user-pen"></i> {{ comp.author.name if comp.author else 'N/A' }}</span>
+                    <span>&bull;</span>
+                    <span>{{ comp.created_at.strftime('%d/%m/%Y') }}</span>
                 </div>
             </div>
 
-            <div class="guia-header-actions"> {# Reutiliza a classe ou cria 'comportamento-header-actions' #}
-                
-                {# Badge de Categoria aqui #}
-                 <span class="categoria-badge">{{ comp.categoria }}</span>
-
-                {# Ícone Editar #}
-                <a href="{{ url_for('editar_comportamento', comportamento_id=comp.id) }}" class="guia-action-icon edit-icon" title="Editar Comportamento">
+            <div class="guia-header-actions">
+                <a href="{{ url_for('editar_comportamento', comportamento_id=comp.id) }}" class="guia-action-icon edit-icon" title="Editar">
                     <i class="fa-solid fa-pencil"></i>
                 </a>
                 
-                {# Ícone Apagar (dentro do form) #}
                 <form method="POST" action="{{ url_for('deletar_comportamento', comportamento_id=comp.id) }}" onsubmit="return confirm('Tem certeza que deseja apagar este comportamento?');" class="guia-action-form">
-                    <button type="submit" class="guia-action-icon delete-icon" title="Apagar Comportamento">
+                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button type="submit" class="guia-action-icon delete-icon" title="Apagar">
                         <i class="fa-solid fa-trash"></i>
                     </button>
                 </form>
                 
-                 {# Ícone Expandir/Recolher #}
                 <i class="fa-solid fa-chevron-down expand-icon"></i>
             </div>
-            </div>
-        <div class="guia-body"> {# Pode renomear #}
-            <div class="guia-content"> {# Pode renomear #}
-                {# Considerar usar render_markdown aqui também se o conteúdo puder ter formatação #}
+        </div>
+        
+        <div class="guia-body">
+            <div class="guia-content">
                 <pre>{{ comp.conteudo }}</pre> 
             </div>
-             {# Ações foram movidas para o header #}
         </div>
     </div>
     {% else %}
-    <p>Nenhum comportamento encontrado para os filtros selecionados.</p>
+    <div style="grid-column: 1 / -1; text-align: center; padding: 50px; color: var(--text-muted); border: 1px dashed var(--glass-border); border-radius: 16px;">
+        <i class="fa-solid fa-magnifying-glass" style="font-size: 3rem; margin-bottom: 20px; opacity: 0.5;"></i>
+        <p>Nenhum comportamento encontrado.</p>
+    </div>
     {% endfor %}
-</div>
+    </div>
+
 </div>
 {% endblock %}
 
 {% block scripts %}
-{{ super() }} {# Mantém scripts do base.html #}
+{{ super() }} 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // === SCRIPT ATUALIZADO PARA EXPANDIR/RECOLHER (ACCORDION) ===
-    const comportamentosContainer = document.querySelector('.guias-grid'); // Ou '.comportamentos-grid' se renomear
+    // === ACCORDION ===
+    const comportamentosContainer = document.querySelector('.guias-grid');
     
     if (comportamentosContainer) {
         comportamentosContainer.addEventListener('click', (event) => {
-            const header = event.target.closest('.guia-header'); // Ou '.comportamento-header'
+            const header = event.target.closest('.guia-header');
             if (!header) return;
 
-            // Impede que clicar nos ícones de ação acione o accordion
-            if (event.target.closest('.guia-action-icon')) { // Reutiliza a classe de ícone
+            if (event.target.closest('.guia-action-icon')) {
                 return; 
             }
 
-            const currentCard = header.closest('.guia-card'); // Ou '.comportamento-card'
+            const currentCard = header.closest('.guia-card');
             if (!currentCard) return;
 
             const wasActive = currentCard.classList.contains('active');
 
-            // 1. Fecha TODOS os cards abertos
+            // Fecha todos
             comportamentosContainer.querySelectorAll('.guia-card.active').forEach(activeCard => {
                 activeCard.classList.remove('active');
             });
 
-            // 2. Abre o card clicado SOMENTE se ele não estava ativo antes
+            // Abre o clicado
             if (!wasActive) {
                 currentCard.classList.add('active');
             }
         });
-    } else {
-        console.warn("Container dos comportamentos não encontrado para o script accordion.");
     }
-    // === FIM DO SCRIPT ACCORDION ===
 
-
-    // Script para mostrar/esconder o formulário de adição (sem alterações)
-    const toggleBtn = document.getElementById('toggle-form'); // ID original era 'toggle-form'
+    // === TOGGLE FORMULÁRIO ===
+    const toggleBtn = document.getElementById('toggle-form');
     const addFormContainer = document.getElementById('add-form-container');
     if (toggleBtn && addFormContainer) {
         toggleBtn.addEventListener('click', () => {
             const isHidden = addFormContainer.style.display === 'none' || addFormContainer.style.display === '';
             if (isHidden) {
                 addFormContainer.style.display = 'block';
-                toggleBtn.innerHTML = '<i class="fa-solid fa-minus"></i> Fechar Formulário';
+                toggleBtn.innerHTML = '<i class="fa-solid fa-minus"></i> Cancelar';
+                toggleBtn.style.background = 'rgba(255,255,255,0.1)';
             } else {
                 addFormContainer.style.display = 'none';
-                toggleBtn.innerHTML = '<i class="fa-solid fa-plus"></i> Adicionar Comportamento';
+                toggleBtn.innerHTML = '<i class="fa-solid fa-plus"></i> Novo Comportamento';
+                toggleBtn.style.background = '';
             }
         });
     }
-
-    // Não há script de upload de imagem aqui (a menos que você adicione futuramente)
-
 });
 </script>
 {% endblock %}

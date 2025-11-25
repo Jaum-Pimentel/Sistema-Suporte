@@ -1,0 +1,290 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block head_extra %}
+<style>
+    /* --- TEMA DARK NEON (HUBSPOT) --- */
+    :root {
+        --glass-bg: rgba(30, 33, 48, 0.6);
+        --glass-border: rgba(255, 255, 255, 0.08);
+        --neon-orange: #ff7e33; /* Cor Hubspot */
+        --text-main: #e0e0e0;
+        --text-muted: #a0a0a0;
+    }
+
+    .content-padding {
+        width: 100%; max-width: 99%; margin: 0 auto; padding: 20px 30px; box-sizing: border-box;
+    }
+
+    /* Header */
+    .page-header {
+        display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;
+        border-bottom: 1px solid var(--glass-border); padding-bottom: 15px;
+    }
+    .page-header h1 {
+        font-size: 2rem; color: #fff; margin: 0; display: flex; align-items: center; gap: 10px;
+        text-shadow: 0 0 15px rgba(255, 126, 51, 0.3);
+    }
+
+    /* Formulário de Adição (Topo) */
+    .add-box {
+        background: var(--glass-bg); backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border); border-radius: 16px; padding: 25px;
+        margin-bottom: 40px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        border-left: 4px solid var(--neon-orange);
+    }
+    .add-box h2 { margin-top: 0; color: var(--neon-orange); font-size: 1.2rem; margin-bottom: 15px; }
+
+    .form-grid { display: grid; grid-template-columns: 2fr 1fr 2fr auto; gap: 20px; align-items: end; }
+    
+    .form-group label { display: block; color: #fff; margin-bottom: 5px; font-weight: 500; font-size: 0.9rem; }
+    .form-control {
+        width: 100%; padding: 10px 15px; background: rgba(15, 12, 41, 0.6);
+        border: 1px solid var(--glass-border); border-radius: 8px; color: #fff;
+        transition: border-color 0.3s; box-sizing: border-box;
+    }
+    .form-control:focus { outline: none; border-color: var(--neon-orange); }
+
+    .btn-add {
+        background: linear-gradient(45deg, #ff7e33, #ff4b1f); color: #fff; border: none;
+        padding: 10px 25px; border-radius: 8px; font-weight: bold; cursor: pointer; height: 42px;
+        transition: transform 0.2s; white-space: nowrap;
+    }
+    .btn-add:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255, 126, 51, 0.4); }
+
+    /* Lista de Cards */
+    .request-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; }
+
+    .request-card {
+        background: var(--glass-bg); backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px;
+        position: relative; transition: all 0.3s; display: flex; flex-direction: column;
+    }
+    .request-card:hover { border-color: rgba(255, 255, 255, 0.2); transform: translateY(-3px); }
+
+    /* Status Pendente (Amarelo) */
+    .status-pending { border-top: 3px solid #f59e0b; }
+    .badge-pending { background: rgba(245, 158, 11, 0.2); color: #f59e0b; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; }
+
+    /* Status Concluído (Verde) */
+    .status-done { border-top: 3px solid #10b981; opacity: 0.8; }
+    .badge-done { background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; }
+
+    .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
+    .req-type { font-size: 1.1rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; }
+    
+    .card-body p { margin: 5px 0; color: var(--text-muted); font-size: 0.9rem; }
+    .card-body strong { color: var(--text-main); }
+
+    .link-preview {
+        color: var(--neon-orange); text-decoration: none; font-size: 0.85rem;
+        display: inline-flex; align-items: center; gap: 5px; margin-top: 5px;
+        background: rgba(255, 126, 51, 0.1); padding: 4px 10px; border-radius: 4px;
+    }
+    .link-preview:hover { background: rgba(255, 126, 51, 0.2); }
+
+    .card-actions { margin-top: 20px; padding-top: 15px; border-top: 1px dashed var(--glass-border); display: flex; justify-content: space-between; align-items: center; }
+
+    .btn-concluir {
+        background: var(--neon-orange); color: #fff; border: none; padding: 8px 15px;
+        border-radius: 6px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;
+        transition: all 0.2s; font-size: 0.9rem;
+    }
+    .btn-concluir:hover { background: #ff5e00; box-shadow: 0 0 15px rgba(255, 94, 0, 0.4); }
+
+    .btn-delete { background: transparent; border: none; color: #666; cursor: pointer; transition: color 0.2s; font-size: 1rem; }
+    .btn-delete:hover { color: #ff4d4d; }
+
+    /* Modal */
+    .modal {
+        position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%;
+        background-color: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center;
+    }
+    .modal-content {
+        background-color: #1f2129; border: 1px solid var(--neon-orange);
+        padding: 30px; border-radius: 16px; width: 90%; max-width: 500px;
+        box-shadow: 0 0 50px rgba(255, 126, 51, 0.2); color: #fff; position: relative;
+    }
+    .close-modal { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: #aaa; }
+    .modal h3 { color: var(--neon-orange); margin-top: 0; display: flex; align-items: center; gap: 10px; }
+
+    /* Responsividade */
+    @media (max-width: 900px) {
+        .form-grid { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-padding">
+    
+    <div class="page-header">
+        <h1><i class="fa-brands fa-hubspot"></i> Solicitações HubSpot</h1>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}" style="padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2);">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="add-box">
+        <h2><i class="fa-solid fa-plus-circle"></i> Nova Solicitação Pendente</h2>
+        <form method="POST" action="{{ url_for('listar_hubspot') }}">
+             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            {{ form.hidden_tag() }}
+            <div class="form-grid">
+                <div class="form-group">
+                    {{ form.chat_link.label }}
+                    {{ form.chat_link(class="form-control", placeholder="Cole o link do chat aqui...") }}
+                </div>
+                <div class="form-group">
+                    {{ form.tipo.label }}
+                    {{ form.tipo(class="form-control") }}
+                </div>
+                <div class="form-group">
+                    {{ form.observacao.label }}
+                    {{ form.observacao(class="form-control", placeholder="Detalhes (opcional)", rows=1, style="height: 42px; padding-top:10px;") }}
+                </div>
+                <div class="form-group">
+                    <label>&nbsp;</label>
+                    {{ form.submit(class="btn-add") }}
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <h3 style="color: #f59e0b; margin-bottom: 20px; border-bottom: 1px dashed #444; padding-bottom: 10px;">
+        <i class="fa-regular fa-clock"></i> Pendentes de Abertura
+    </h3>
+    
+    <div class="request-grid">
+        {% for req in pendentes %}
+        <div class="request-card status-pending">
+            <div class="card-header">
+                <div class="req-type">
+                    {% if req.tipo_solicitacao == 'Upgrade' %}<i class="fa-solid fa-arrow-trend-up" style="color: #2ecc71;"></i>
+                    {% elif req.tipo_solicitacao == 'Downgrade' %}<i class="fa-solid fa-arrow-trend-down" style="color: #e74c3c;"></i>
+                    {% elif req.tipo_solicitacao == 'Cancelamento' %}<i class="fa-solid fa-ban" style="color: #e74c3c;"></i>
+                    {% else %}<i class="fa-solid fa-clipboard-list"></i>{% endif %}
+                    {{ req.tipo_solicitacao }}
+                </div>
+                <span class="badge-pending">Pendente</span>
+            </div>
+            <div class="card-body">
+                <p><strong>Chat:</strong> <a href="{{ req.chat_link }}" target="_blank" class="link-preview">Abrir Chat <i class="fa-solid fa-external-link-alt"></i></a></p>
+                {% if req.observacao %}
+                <p><strong>Obs:</strong> {{ req.observacao }}</p>
+                {% endif %}
+                <p><small><i class="fa-regular fa-calendar"></i> {{ req.created_at.strftime('%d/%m/%Y %H:%M') }}</small></p>
+            </div>
+            <div class="card-actions">
+                
+                <form method="POST" action="{{ url_for('deletar_hubspot', req_id=req.id) }}" onsubmit="return confirm('Deletar essa solicitação?');">
+                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    {{ form.hidden_tag() }} 
+                    <button type="submit" class="btn-delete" title="Excluir"><i class="fa-solid fa-trash-can"></i></button>
+                </form>
+                
+                <button class="btn-concluir open-modal-btn" data-id="{{ req.id }}">
+                    <i class="fa-solid fa-check"></i> Já Abri o Ticket
+                </button>
+            </div>
+        </div>
+        {% else %}
+        <p style="color: #666; font-style: italic;">Nenhuma solicitação pendente. Bom trabalho!</p>
+        {% endfor %}
+    </div>
+
+    <h3 style="color: #10b981; margin-top: 50px; margin-bottom: 20px; border-bottom: 1px dashed #444; padding-bottom: 10px;">
+        <i class="fa-solid fa-check-double"></i> Últimas Concluídas
+    </h3>
+    
+    <div class="request-grid">
+        {% for req in concluidos %}
+        <div class="request-card status-done">
+            <div class="card-header">
+                <div class="req-type" style="opacity: 0.8;">{{ req.tipo_solicitacao }}</div>
+                <span class="badge-done">Concluído</span>
+            </div>
+            <div class="card-body">
+                <p><strong>Ticket:</strong> <a href="{{ req.hubspot_link }}" target="_blank" class="link-preview" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">Ver no HubSpot</a></p>
+                <p><small>Resolvido em: {{ req.updated_at.strftime('%d/%m %H:%M') }}</small></p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+<!-- MODAL PARA INSERIR LINK E RESPONSÁVEL -->
+<div id="concluirModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h3><i class="fa-brands fa-hubspot"></i> Confirmar Abertura</h3>
+        <p>Preencha os dados abaixo para finalizar.</p>
+        
+        <form id="concluirForm" method="POST" action="">
+            <!-- Token CSRF -->
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            
+            <div class="form-group" style="margin-top: 20px;">
+                <label style="color: #ccc; margin-bottom: 8px; display: block;">Link do Ticket HubSpot *</label>
+                <input type="url" name="hubspot_link" class="form-control" placeholder="https://app.hubspot.com/..." required>
+            </div>
+
+            <div class="form-group">
+                <label style="color: #ccc; margin-bottom: 8px; display: block;">Ticket atribuído para: *</label>
+                <div class="input-wrapper" style="position: relative;">
+                    <i class="fa-solid fa-user-tag" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #ff7e33;"></i>
+                    <select name="responsavel" class="form-control" style="padding-left: 40px; appearance: none; cursor: pointer;" required>
+                        <option value="" disabled selected>-- Selecione --</option>
+                        <option value="Matheus Vilela">Matheus Vilela</option>
+                        <option value="Cauã">Cauã</option>
+                        <option value="Ana Vitoria">Ana Vitoria</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #666; pointer-events: none;"></i>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-concluir" style="width: 100%; justify-content: center; margin-top: 20px; padding: 12px;">
+                Salvar e Notificar
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('concluirModal');
+    const form = document.getElementById('concluirForm');
+    const closeBtn = document.querySelector('.close-modal');
+    const btns = document.querySelectorAll('.open-modal-btn');
+
+    btns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.dataset.id;
+            // Atualiza a ação do formulário com o ID correto
+            form.action = `/hubspot-requests/concluir/${id}`;
+            modal.style.display = 'flex';
+        });
+    });
+
+    closeBtn.onclick = function() {
+        modal.style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    }
+});
+</script>
+{% endblock %}

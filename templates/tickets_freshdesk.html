@@ -2,20 +2,271 @@
 
 {% block title %}{{ title }}{% endblock %}
 
+{% block head %}
+    {{ super() }}
+    <style>
+        /* ================= TEMA DARK MODERN ================= */
+        :root {
+            --bg-body: #1e1e2f;
+            --card-bg: #27293d;
+            --input-bg: #1d1d2b;
+            --text-main: #ffffff;
+            --text-muted: #8f9bb3;
+            --accent: #6a5acd; /* Roxo Principal */
+            --success: #00d68f; /* Verde para Resolver */
+            --info: #2e5bff;    /* Azul para Acompanhar */
+            --excel: #1d6f42;   /* Verde Excel */
+            --border: rgba(255, 255, 255, 0.05);
+        }
+
+        .content-padding {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Cabeçalho */
+        .fila-header h1 {
+            color: var(--text-main);
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        /* ================= BARRA DE FILTROS ================= */
+        .filter-bar {
+            display: flex;
+            gap: 15px;
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            align-items: center;
+            border: 1px solid var(--border);
+        }
+
+        .search-form {
+            display: flex;
+            flex-grow: 1;
+            gap: 10px;
+        }
+
+        .search-form input {
+            flex-grow: 1;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .search-form input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        /* ================= BOTÕES GERAIS ================= */
+        .action-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            font-size: 0.95rem;
+            color: white;
+        }
+
+        .action-btn i { font-size: 1.1em; }
+        .action-btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+        /* Cores dos Botões */
+        .search-form button { background: var(--accent); }
+        .export-btn { background: var(--excel); margin-left: auto; }
+        .resolve-btn { background: var(--success); color: #0f2e1d; }
+        .follow-btn { background: var(--info); }
+
+        /* ================= LISTA DE TICKETS ================= */
+        .ticket-list {
+            list-style: none;
+            padding: 0;
+            display: grid;
+            gap: 20px;
+        }
+
+        .ticket-item {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid var(--border);
+            border-left: 5px solid var(--accent); /* Indicador visual lateral */
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .ticket-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            background: #2c2e45;
+        }
+
+        /* Conteúdo do Ticket */
+        .ticket-content {
+            flex-grow: 1;
+        }
+
+        .ticket-description {
+            font-size: 1.2rem;
+            color: var(--text-main);
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        /* Metadados (Data, Autor, Link) */
+        .ticket-meta-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: center;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .ticket-meta-info small {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .ticket-meta-info i { color: var(--accent); }
+        .ticket-meta-info strong { color: #e0e0e0; }
+
+        .ticket-link {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+            border-bottom: 1px dashed var(--accent);
+            padding-bottom: 2px;
+            transition: color 0.2s;
+        }
+        .ticket-link:hover { color: #fff; border-color: #fff; }
+
+        /* Ações do Ticket */
+        .ticket-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 160px;
+        }
+        
+        .ticket-actions button { width: 100%; justify-content: center; }
+
+        /* Placeholder (Vazio) */
+        .placeholder-text {
+            text-align: center;
+            padding: 60px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            border: 2px dashed var(--border);
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        /* ================= MODAL ================= */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1000; 
+            left: 0; top: 0; width: 100%; height: 100%; 
+            background-color: rgba(0,0,0,0.7); 
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            margin: 10% auto;
+            padding: 30px;
+            border: 1px solid var(--border);
+            width: 90%; max-width: 500px;
+            border-radius: 16px;
+            color: var(--text-main);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .close-btn {
+            color: var(--text-muted);
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .close-btn:hover { color: var(--text-main); }
+
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 8px; color: var(--text-muted); }
+        .input-group input {
+            width: 100%; padding: 12px;
+            background: var(--input-bg); border: 1px solid var(--border);
+            border-radius: 8px; color: white;
+        }
+
+        .submit-btn {
+            width: 100%; padding: 12px;
+            background: var(--accent); color: white;
+            border: none; border-radius: 8px;
+            font-size: 1rem; font-weight: bold; cursor: pointer;
+            transition: background 0.3s;
+        }
+        .submit-btn:hover { background: #5b4dbf; }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .filter-bar { flex-direction: column; align-items: stretch; }
+            .export-btn { margin-left: 0; text-align: center; justify-content: center; }
+            .ticket-item { flex-direction: column; }
+            .ticket-actions { width: 100%; flex-direction: row; }
+            .ticket-actions form { flex-grow: 1; }
+        }
+    </style>
+{% endblock %}
+
 {% block content %}
 <div class="content-padding">
+    
     <div class="fila-header">
         <h1>{{ title }}</h1>
     </div>
 
-    <!-- Barra de Filtro e Exportação -->
     <div class="filter-bar">
         <form method="GET" action="{{ url_for('tickets_freshdesk') }}" class="search-form">
-            <input type="text" name="search" placeholder="Filtrar por descrição..." value="{{ search_term or '' }}">
-            <button type="submit" class="action-btn"><i class="fa-solid fa-search"></i> Filtrar</button>
+             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <input type="text" name="search" placeholder="🔍 Filtrar por descrição ou ID..." value="{{ search_term or '' }}">
+            <button type="submit" class="action-btn">Filtrar</button>
         </form>
+        
         <a href="{{ url_for('export_tickets', search=search_term) }}" class="action-btn export-btn">
-            <i class="fa-solid fa-file-excel"></i> Exportar para Planilha
+            <i class="fa-solid fa-file-excel"></i> Exportar Excel
         </a>
     </div>
 
@@ -27,18 +278,39 @@
                 {% for ticket in tickets %}
                 <li class="ticket-item">
                     <div class="ticket-content">
-                        <p class="ticket-description">{{ ticket.description }}</p>
-                        <a href="{{ ticket.link }}" target="_blank" rel="noopener noreferrer" class="ticket-link">Ver ticket original</a>
-                        <small class="ticket-timestamp">Aberto em: {{ ticket.created_at.strftime('%d/%m/%Y às %H:%M') }}</small>
+                        <p class="ticket-description">
+                            <strong>#{{ ticket.id }}</strong> - {{ ticket.description }}
+                        </p>
+                        
+                        <div class="ticket-meta-info">
+                            <a href="{{ ticket.link }}" target="_blank" rel="noopener noreferrer" class="ticket-link">
+                                <i class="fa-solid fa-external-link-alt"></i> Ver no Freshdesk
+                            </a>
+                            
+                            <small class="ticket-timestamp">
+                                <i class="fa-regular fa-clock"></i> 
+                                {{ ticket.created_at.strftime('%d/%m/%Y às %H:%M') }}
+                            </small>
+
+                            {% if ticket.requester_name %}
+                                <small class="ticket-requester">
+                                    <i class="fa-regular fa-user"></i> 
+                                    Criado por: <strong>{{ ticket.requester_name }}</strong>
+                                </small>
+                            {% endif %}
+                        </div>
                     </div>
+
                     <div class="ticket-actions">
-                        <form method="POST" action="{{ url_for('resolver_ticket', ticket_id=ticket.id) }}" style="display: inline;">
+                        <form method="POST" action="{{ url_for('resolver_ticket', ticket_id=ticket.id) }}" style="flex-grow: 1;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                             <button type="submit" class="action-btn resolve-btn" title="Marcar como Resolvido">
                                 <i class="fa-solid fa-check"></i> Resolver
                             </button>
                         </form>
+                        
                         <button class="action-btn follow-btn" data-ticket-id="{{ ticket.id }}" title="Acompanhar para dar retorno">
-                            <i class="fa-solid fa-user-plus"></i> Acompanhar
+                            <i class="fa-solid fa-headset"></i> Acompanhar
                         </button>
                     </div>
                 </li>
@@ -46,26 +318,28 @@
             </ul>
         {% else %}
             <div class="placeholder-text">
+                <i class="fa-solid fa-clipboard-check" style="font-size: 3rem; color: var(--accent); margin-bottom: 20px; display: block;"></i>
                 {% if search_term %}
-                    <p>Nenhum ticket encontrado com a descrição "{{ search_term }}".</p>
+                    <p>Nenhum ticket encontrado com a descrição "<strong>{{ search_term }}</strong>".</p>
                 {% else %}
-                    <p>Nenhum ticket aberto no momento. Tudo em ordem!</p>
+                    <p>Nenhum ticket pendente no momento. Bom trabalho!</p>
                 {% endif %}
             </div>
         {% endif %}
     </div>
 </div>
 
-<!-- Modal para Adicionar Acompanhamento -->
 <div id="followUpModal" class="modal">
     <div class="modal-content">
         <span class="close-btn">&times;</span>
-        <h2>Acompanhar Ticket</h2>
-        <p>Insira o link do chat ou contato para dar retorno a este cliente.</p>
+        <h2><i class="fa-solid fa-headset"></i> Acompanhar Ticket</h2>
+        <p style="color: #8f9bb3; margin-bottom: 20px;">Insira o link do chat ou contato para dar retorno a este cliente.</p>
+        
         <form id="followUpForm" method="POST">
+             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <div class="input-group">
-                <label for="retorno_link">Link de Retorno</label>
-                <input type="url" id="retorno_link" name="retorno_link" required placeholder="https://chat.exemplo.com/conversa/123">
+                <label for="retorno_link">Link de Retorno (Chat/Whatsapp)</label>
+                <input type="url" id="retorno_link" name="retorno_link" required placeholder="https://chat.exemplo.com/conversa/123" autocomplete="off">
             </div>
             <button type="submit" class="submit-btn">Salvar Acompanhamento</button>
         </form>
@@ -77,28 +351,29 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const followUpModal = document.getElementById('followUpModal');
+    
     if (followUpModal) {
         const followUpForm = document.getElementById('followUpForm');
         const closeBtn = followUpModal.querySelector('.close-btn');
 
+        // Abrir Modal
         document.querySelectorAll('.follow-btn').forEach(button => {
             button.addEventListener('click', function() {
                 const ticketId = this.dataset.ticketId;
-                // Define a ação do formulário do modal para a rota correta
                 followUpForm.action = `/ticket/acompanhar/${ticketId}`;
                 followUpModal.style.display = 'block';
-                document.getElementById('retorno_link').focus();
+                
+                // Foca no input automaticamente
+                setTimeout(() => {
+                    document.getElementById('retorno_link').focus();
+                }, 100);
             });
         });
 
-        closeBtn.onclick = function() {
-            followUpModal.style.display = 'none';
-        }
-
-        window.onclick = function(event) {
-            if (event.target == followUpModal) {
-                followUpModal.style.display = 'none';
-            }
+        // Fechar Modal
+        closeBtn.onclick = () => followUpModal.style.display = 'none';
+        window.onclick = (event) => {
+            if (event.target == followUpModal) followUpModal.style.display = 'none';
         }
     }
 });

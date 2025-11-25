@@ -104,7 +104,7 @@ def check_and_send_daily_summary():
         hoje_data = now_brasilia.date() 
 
         # 1. Verifica se já enviamos o resumo hoje OU se ainda não deu 18:10
-        if (ultimo_resumo_enviado == hoje_data) or (now_brasilia.hour < 18) or (now_brasilia.hour == 18 and now_brasilia.minute < 15):
+        if (ultimo_resumo_enviado == hoje_data) or (now_brasilia.hour < 18) or (now_brasilia.hour == 18 and now_brasilia.minute < 5):
             return
             
         print(f"[{now_brasilia.strftime('%H:%M:%S')}] Hora de enviar o resumo diário (18:10+)! Gerando contagem...")

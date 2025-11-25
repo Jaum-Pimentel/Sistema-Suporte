@@ -2,52 +2,234 @@
 
 {% block title %}Editar Perfil{% endblock %}
 
+{% block head_extra %}
+<style>
+    /* --- TEMA DARK NEON (PERFIL HORIZONTAL) --- */
+    :root {
+        --glass-bg: rgba(30, 33, 48, 0.6);
+        --glass-border: rgba(255, 255, 255, 0.08);
+        --neon-purple: #d412d4;
+        --neon-blue: #4cc9f0;
+        --text-main: #e0e0e0;
+        --text-muted: #a0a0a0;
+        --danger: #ff4d4d;
+        --dark-input: rgba(15, 12, 41, 0.6);
+        --section-bg: rgba(20, 20, 35, 0.4);
+    }
+
+    .page-container {
+        width: 100%;
+        max-width: 99%;
+        margin: 0 auto;
+        padding: 20px 30px;
+        box-sizing: border-box;
+    }
+
+    /* Header da Página Compacto */
+    .page-header {
+        margin-bottom: 20px;
+        border-bottom: 1px solid var(--glass-border);
+        padding-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .page-header h1 {
+        font-size: 1.8rem;
+        color: #fff;
+        margin: 0;
+        text-shadow: 0 0 10px rgba(212, 18, 212, 0.4);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* --- CARD PRINCIPAL --- */
+    .profile-main-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(15px);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+        padding: 30px;
+    }
+
+    /* Layout Grid Horizontal */
+    .profile-grid-layout {
+        display: grid;
+        /* Coluna da esquerda um pouco menor que a da direita */
+        grid-template-columns: 1fr 1.2fr; 
+        gap: 40px;
+        align-items: start;
+    }
+
+    /* --- COLUNA ESQUERDA: INFO BÁSICA --- */
+    .profile-basic-info {
+        background: var(--section-bg);
+        border-radius: 12px;
+        padding: 25px;
+        border: 1px solid var(--glass-border);
+        height: 100%; /* Ocupa toda altura disponível */
+        box-sizing: border-box;
+    }
+
+    /* Header interno com Avatar */
+    .basic-info-header {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--glass-border);
+    }
+
+    .mini-avatar {
+        width: 70px; height: 70px;
+        border-radius: 50%;
+        background: linear-gradient(45deg, #7b2cbf, #d412d4);
+        color: #fff; font-size: 2rem; font-weight: 700;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 0 15px rgba(212, 18, 212, 0.4);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .basic-info-header h3 { margin: 0; color: #fff; font-size: 1.3rem; }
+    .basic-info-header p { margin: 5px 0 0 0; color: var(--text-muted); font-size: 0.9rem; }
+
+    /* --- COLUNA DIREITA: SEGURANÇA & EXTRAS --- */
+    .profile-security-info {
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+        height: 100%;
+    }
+
+    .security-section-box {
+        background: rgba(0, 0, 0, 0.2); /* Fundo um pouco mais escuro */
+        border-radius: 12px;
+        padding: 25px;
+        border: 1px dashed var(--glass-border);
+        flex-grow: 1; /* Ocupa espaço restante */
+    }
+
+    .section-title {
+        color: var(--neon-blue);
+        margin-top: 0;
+        margin-bottom: 20px;
+        font-size: 1.1rem;
+        display: flex; align-items: center; gap: 10px;
+    }
+
+    /* Sub-grid para campos lado a lado (Discord/Ramal) */
+    .form-row-compact {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    /* --- ESTILOS DE FORMULÁRIO COMUNS --- */
+    .form-group { margin-bottom: 20px; }
+    
+    .form-label {
+        display: block; color: #fff; margin-bottom: 8px; font-weight: 500; font-size: 0.9rem;
+    }
+
+    .input-with-icon { position: relative; }
+    
+    .input-with-icon i {
+        position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
+        color: var(--neon-purple); font-size: 0.9rem; z-index: 2;
+    }
+
+    .form-control {
+        width: 100%; padding: 10px 15px 10px 40px; /* Padding menor para ser mais compacto */
+        background: var(--dark-input); border: 1px solid var(--glass-border);
+        border-radius: 8px; color: #fff; font-family: 'Poppins', sans-serif;
+        font-size: 0.95rem; transition: all 0.3s; box-sizing: border-box;
+    }
+    .form-control:focus {
+        outline: none; border-color: var(--neon-blue); background: rgba(20, 20, 35, 0.8);
+    }
+
+    /* Botão Salvar (Alinhado à direita) */
+    .form-submit-container {
+        text-align: right;
+        padding-top: 20px;
+        border-top: 1px solid var(--glass-border);
+    }
+    
+    .btn-primary {
+        background: linear-gradient(45deg, #7b2cbf, var(--neon-purple));
+        color: #fff; border: none; padding: 12px 35px; border-radius: 50px;
+        font-size: 1rem; font-weight: 600; cursor: pointer;
+        box-shadow: 0 5px 15px rgba(123, 44, 191, 0.4);
+        transition: transform 0.2s, box-shadow 0.2s;
+        display: inline-flex; align-items: center; gap: 10px;
+    }
+    .btn-primary:hover {
+        transform: translateY(-2px); box-shadow: 0 8px 20px rgba(123, 44, 191, 0.6);
+    }
+
+    .error-message { color: var(--danger); font-size: 0.85rem; margin-top: 5px; }
+
+    /* Responsividade: Empilha em telas menores */
+    @media (max-width: 992px) {
+        .profile-grid-layout { grid-template-columns: 1fr; gap: 30px; }
+        .profile-basic-info { height: auto; }
+        .form-row-compact { grid-template-columns: 1fr; gap: 0; }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="page-container">
+    
     <div class="page-header">
-        <h1>Meu Perfil</h1>
+        <h1><i class="fa-solid fa-user-gear"></i> Editar Perfil</h1>
     </div>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}{% for category, message in messages %}
-        <div class="alert alert-{{ category }}">{{ message }}</div>
+        <div class="alert alert-{{ category }}" style="padding: 12px; border-radius: 8px; margin-bottom: 20px; text-align: center; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); font-size: 0.9rem;">{{ message }}</div>
         {% endfor %}{% endif %}
     {% endwith %}
 
-    <div class="profile-card">
-
-        <div class="profile-header">
-            <div class="profile-avatar">{{ current_user.name[0] }}</div>
-            <div class="profile-info">
-                <h2>{{ current_user.name }}</h2>
-                <p>Atualize suas informações de perfil abaixo.</p>
-            </div>
-        </div>
-
-        <div class="profile-body">
-            <form method="POST" action="">
-                {{ form.hidden_tag() }}
-
-                <div class="form-group">
-                    {{ form.name.label(class="form-label") }}
-                    <div class="input-with-icon">
-                        <i class="fa-solid fa-address-card"></i>
-                        {{ form.name(class="form-control") }}
+    <div class="profile-main-card">
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="profile-grid-layout">
+                
+                <div class="profile-basic-info">
+                    <div class="basic-info-header">
+                        <div class="mini-avatar">{{ current_user.name[0] | upper }}</div>
+                        <div>
+                            <h3>Dados Pessoais</h3>
+                            <p>Informações de identificação.</p>
+                        </div>
                     </div>
-                    {% if form.name.errors %}<div class="error-message">{{ form.name.errors[0] }}</div>{% endif %}
-                </div>
 
-                <div class="form-row"> 
-                    
+                    <div class="form-group">
+                        {{ form.name.label(class="form-label") }}
+                        <div class="input-with-icon">
+                            <i class="fa-solid fa-address-card"></i>
+                            {{ form.name(class="form-control", placeholder="Nome completo") }}
+                        </div>
+                        {% if form.name.errors %}<div class="error-message">{{ form.name.errors[0] }}</div>{% endif %}
+                    </div>
+
                     <div class="form-group">
                         {{ form.username.label(class="form-label") }}
                         <div class="input-with-icon">
-                           <i class="fa-solid fa-user"></i> 
-                           {{ form.username(class="form-control") }} 
+                            <i class="fa-solid fa-user"></i> 
+                            {{ form.username(class="form-control") }} 
                         </div>
                         {% if form.username.errors %}<div class="error-message">{{ form.username.errors[0] }}</div>{% endif %}
                     </div>
-                    <div class="form-group">
+
+                    <div class="form-group" style="margin-bottom: 0;">
                         {{ form.email.label(class="form-label") }}
                         <div class="input-with-icon">
                             <i class="fa-solid fa-envelope"></i>
@@ -56,57 +238,63 @@
                         {% if form.email.errors %}<div class="error-message">{{ form.email.errors[0] }}</div>{% endif %}
                     </div>
                 </div>
-
-               <div class="form-row">
-    <div class="form-group">
-        {{ form.discord_id.label(class="form-label") }}
-        <div class="input-with-icon">
-            <i class="fa-brands fa-discord"></i>
-            {{ form.discord_id(class="form-control", placeholder="Cole seu ID do Discord aqui") }}
-        </div>
-        {% if form.discord_id.errors %}<div class="error-message">{{ form.discord_id.errors[0] }}</div>{% endif %}
-    </div>
-
-    <div class="form-group">
-        {{ form.ramal.label(class="form-label") }}
-        <div class="input-with-icon">
-            <i class="fa-solid fa-phone"></i>
-            {{ form.ramal(class="form-control", placeholder="Ex: 1234") }}
-        </div>
-        {% if form.ramal.errors %}<div class="error-message">{{ form.ramal.errors[0] }}</div>{% endif %}
-    </div>
-</div>
-
-                <div class="password-section">
-                    <h4>Alterar Senha</h4>
-                    <p class="subtitle">Deixe os campos abaixo em branco para não alterar sua senha atual.</p>
-                    <div class="form-row">
-                        <div class="form-group">
-                            {{ form.password.label(class="form-label") }}
-                            <div class="input-with-icon">
-                                <i class="fa-solid fa-lock"></i>
-                                {{ form.password(class="form-control") }}
+                
+                <div class="profile-security-info">
+                    
+                    <div style="padding: 20px; background: var(--section-bg); border-radius: 12px; border: 1px solid var(--glass-border);">
+                        <h4 class="section-title"><i class="fa-solid fa-circle-info"></i> Detalhes Adicionais</h4>
+                        <div class="form-row-compact">
+                            <div class="form-group">
+                                {{ form.discord_id.label(class="form-label") }}
+                                <div class="input-with-icon">
+                                    <i class="fa-brands fa-discord"></i>
+                                    {{ form.discord_id(class="form-control", placeholder="ID numérico") }}
+                                </div>
+                                {% if form.discord_id.errors %}<div class="error-message">{{ form.discord_id.errors[0] }}</div>{% endif %}
                             </div>
-                            {% if form.password.errors %}<div class="error-message">{{ form.password.errors[0] }}</div>{% endif %}
-                        </div>
-                        
 
-                        <div class="form-group">
-                            {{ form.confirm_password.label(class="form-label") }}
-                            <div class="input-with-icon">
-                                <i class="fa-solid fa-lock"></i>
-                                {{ form.confirm_password(class="form-control") }}
+                            <div class="form-group">
+                                {{ form.ramal.label(class="form-label") }}
+                                <div class="input-with-icon">
+                                    <i class="fa-solid fa-phone"></i>
+                                    {{ form.ramal(class="form-control", placeholder="Ex: 1234") }}
+                                </div>
+                                {% if form.ramal.errors %}<div class="error-message">{{ form.ramal.errors[0] }}</div>{% endif %}
                             </div>
-                            {% if form.confirm_password.errors %}<div class="error-message">{{ form.confirm_password.errors[0] }}</div>{% endif %}
                         </div>
                     </div>
-                </div>
 
-                <div class="form-group form-submit-group">
-                    {{ form.submit(class="btn btn-primary") }}
-                </div>
-            </form>
-        </div>
+                    <div class="security-section-box">
+                        <h4 class="section-title" style="color: var(--danger);"><i class="fa-solid fa-lock"></i> Segurança (Alterar Senha)</h4>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 15px;">Preencha apenas se desejar alterar sua senha atual.</p>
+                        
+                        <div class="form-row-compact">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                {{ form.password.label(class="form-label") }}
+                                <div class="input-with-icon">
+                                    <i class="fa-solid fa-key"></i>
+                                    {{ form.password(class="form-control", placeholder="Nova senha") }}
+                                </div>
+                                {% if form.password.errors %}<div class="error-message">{{ form.password.errors[0] }}</div>{% endif %}
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 0;">
+                                {{ form.confirm_password.label(class="form-label") }}
+                                <div class="input-with-icon">
+                                    <i class="fa-solid fa-check-double"></i>
+                                    {{ form.confirm_password(class="form-control", placeholder="Confirme a senha") }}
+                                </div>
+                                {% if form.confirm_password.errors %}<div class="error-message">{{ form.confirm_password.errors[0] }}</div>{% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                </div> </div> <div class="form-submit-container">
+                <button type="submit" class="btn-primary">
+                    <i class="fa-solid fa-floppy-disk"></i> Salvar Alterações
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 {% endblock %}

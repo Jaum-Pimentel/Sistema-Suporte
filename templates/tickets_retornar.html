@@ -2,6 +2,213 @@
 
 {% block title %}{{ title }}{% endblock %}
 
+{% block head %}
+    {{ super() }}
+    <style>
+        /* ================= TEMA DARK MODERN (Consistente) ================= */
+        :root {
+            --bg-body: #1e1e2f;
+            --card-bg: #27293d;
+            --input-bg: #1d1d2b;
+            --text-main: #ffffff;
+            --text-muted: #8f9bb3;
+            --accent: #6a5acd;       /* Roxo Principal */
+            --success: #00d68f;      /* Verde (Resolvido) */
+            --danger: #ff4d4d;       /* Vermelho (Remover) */
+            --border: rgba(255, 255, 255, 0.05);
+        }
+
+        .content-padding {
+            padding: 2rem;
+            max-width: 1400px; /* Um pouco mais largo para caber as duas colunas */
+            margin: 0 auto;
+        }
+
+        /* Cabeçalho */
+        .fila-header h1 {
+            color: var(--text-main);
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+        }
+
+        /* ================= BARRA DE FILTRO ================= */
+        .filter-bar {
+            margin-bottom: 30px;
+        }
+
+        .filter-bar input {
+            width: 100%;
+            padding: 15px 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-main);
+            font-size: 1rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .filter-bar input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 4px 20px rgba(106, 90, 205, 0.2);
+        }
+
+        /* ================= GRID DE DUAS COLUNAS ================= */
+        .follow-up-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Divisão 50% / 50% */
+            gap: 30px;
+            align-items: start;
+        }
+
+        .follow-up-section {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .follow-up-section h2 {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Cores dos Títulos */
+        .section-waiting h2 { color: var(--text-muted); border-color: var(--text-muted); }
+        .section-resolved h2 { color: var(--success); border-color: var(--success); }
+
+        /* ================= LISTA DE CARDS ================= */
+        .ticket-list {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .ticket-item {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ticket-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        /* Estilo Específico: Aguardando */
+        .type-waiting { border-left: 4px solid var(--text-muted); }
+        
+        /* Estilo Específico: Resolvido (Destaque) */
+        .type-resolved { 
+            border-left: 4px solid var(--success); 
+            background: linear-gradient(to right, #27293d, #1e2d2f); /* Leve tom esverdeado */
+        }
+
+        /* Conteúdo do Ticket */
+        .ticket-content { flex-grow: 1; }
+
+        .ticket-description {
+            font-size: 1.1rem;
+            color: var(--text-main);
+            margin-bottom: 12px;
+            line-height: 1.4;
+            font-weight: 500;
+        }
+
+        /* Links e Datas */
+        .ticket-links {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+
+        .ticket-link {
+            font-size: 0.85rem;
+            text-decoration: none;
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.05);
+            color: var(--text-muted);
+            transition: all 0.2s;
+        }
+        
+        .ticket-link:hover { background: var(--accent); color: white; }
+        
+        .ticket-link.return { color: var(--success); border: 1px solid rgba(0, 214, 143, 0.2); }
+        .ticket-link.return:hover { background: var(--success); color: #000; }
+
+        .ticket-timestamp {
+            display: block;
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 8px;
+        }
+
+        .type-resolved .ticket-timestamp { color: var(--success); font-weight: bold; }
+
+        /* ================= BOTÕES DE AÇÃO (ÍCONES) ================= */
+        .ticket-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            justify-content: flex-start;
+        }
+
+        .action-btn-icon {
+            width: 40px; height: 40px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+            color: white;
+        }
+
+        .action-btn-icon:hover { transform: scale(1.1); }
+
+        .btn--danger { background: rgba(255, 77, 77, 0.1); color: var(--danger); border: 1px solid rgba(255, 77, 77, 0.2); }
+        .btn--danger:hover { background: var(--danger); color: white; }
+
+        .btn--success { background: rgba(0, 214, 143, 0.1); color: var(--success); border: 1px solid rgba(0, 214, 143, 0.2); }
+        .btn--success:hover { background: var(--success); color: #0f2e1d; }
+
+        /* Placeholder (Vazio) */
+        .placeholder-text {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-muted);
+            font-style: italic;
+            background: rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+
+        /* Mobile */
+        @media (max-width: 900px) {
+            .follow-up-container { grid-template-columns: 1fr; } /* Vira uma coluna só no mobile */
+        }
+    </style>
+{% endblock %}
+
 {% block content %}
 <div class="content-padding">
     <div class="fila-header">
@@ -9,28 +216,42 @@
     </div>
 
     <div class="filter-bar">
-        <input type="text" id="ticketFilter" placeholder="Filtrar por descrição do ticket...">
+        <input type="text" id="ticketFilter" placeholder="🔍 Filtrar tickets por descrição...">
     </div>
 
     {% include 'includes/_flash_messages.html' %}
 
     <div class="follow-up-container">
-        <div class="follow-up-section">
-            <h2>Aguardando Resolução</h2>
+        
+        <div class="follow-up-section section-waiting">
+            <h2>
+                <i class="fa-regular fa-clock"></i> Aguardando Resolução
+            </h2>
+            
             {% if abertos %}
                 <ul class="ticket-list">
                     {% for follow_up in abertos %}
-                    <li class="ticket-item" data-filter-text="{{ follow_up.ticket.description | lower }}">
+                    <li class="ticket-item type-waiting" data-filter-text="{{ follow_up.ticket.description | lower }}">
                         <div class="ticket-content">
                             <p class="ticket-description">{{ follow_up.ticket.description }}</p>
+                            
                             <div class="ticket-links">
-                                <a href="{{ follow_up.ticket.link }}" target="_blank" rel="noopener noreferrer" class="ticket-link">Ver ticket original</a>
-                                <a href="{{ follow_up.return_link }}" target="_blank" rel="noopener noreferrer" class="ticket-link return">Ver link de retorno</a>
+                                <a href="{{ follow_up.ticket.link }}" target="_blank" rel="noopener noreferrer" class="ticket-link">
+                                    <i class="fa-solid fa-external-link-alt"></i> Ticket Original
+                                </a>
+                                <a href="{{ follow_up.return_link }}" target="_blank" rel="noopener noreferrer" class="ticket-link">
+                                    <i class="fa-solid fa-reply"></i> Link Retorno
+                                </a>
                             </div>
-                            <small class="ticket-timestamp">Aberto em: {{ follow_up.ticket.created_at.strftime('%d/%m/%Y às %H:%M') }}</small>
+                            
+                            <small class="ticket-timestamp">
+                                <i class="fa-regular fa-calendar"></i> Aberto em: {{ follow_up.ticket.created_at.strftime('%d/%m/%Y às %H:%M') }}
+                            </small>
                         </div>
+                        
                         <div class="ticket-actions">
-                            <form method="POST" action="{{ url_for('remover_acompanhamento', followup_id=follow_up.id) }}" onsubmit="return confirm('Tem certeza que deseja remover este acompanhamento?');">
+                            <form method="POST" action="{{ url_for('remover_acompanhamento', followup_id=follow_up.id) }}" onsubmit="return confirm('Parar de acompanhar este ticket?');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                 <button type="submit" class="action-btn-icon btn--danger" title="Remover Acompanhamento">
                                     <i class="fa-solid fa-trash"></i>
                                 </button>
@@ -40,33 +261,51 @@
                     {% endfor %}
                 </ul>
             {% else %}
-                <p class="placeholder-text">Você не está acompanhando nenhum ticket que ainda esteja aberto.</p>
+                <p class="placeholder-text">
+                    <i class="fa-regular fa-thumbs-up"></i><br>
+                    Nenhum ticket pendente.
+                </p>
             {% endif %}
         </div>
 
-        <div class="follow-up-section">
-            <h2>Resolvidos para Retornar</h2>
+        <div class="follow-up-section section-resolved">
+            <h2>
+                <i class="fa-solid fa-check-circle"></i> Prontos para Retornar
+            </h2>
+            
             {% if resolvidos %}
                  <ul class="ticket-list">
                     {% for follow_up in resolvidos %}
                         {% if not follow_up.notified_seen %}
-                        <li class="ticket-item resolved" data-filter-text="{{ follow_up.ticket.description | lower }}">
+                        <li class="ticket-item type-resolved" data-filter-text="{{ follow_up.ticket.description | lower }}">
                             <div class="ticket-content">
                                 <p class="ticket-description">{{ follow_up.ticket.description }}</p>
+                                
                                 <div class="ticket-links">
-                                    <a href="{{ follow_up.ticket.link }}" target="_blank" rel="noopener noreferrer" class="ticket-link">Ver ticket original</a>
-                                    <a href="{{ follow_up.return_link }}" target="_blank" rel="noopener noreferrer" class="ticket-link return">Ver link de retorno</a>
+                                    <a href="{{ follow_up.ticket.link }}" target="_blank" rel="noopener noreferrer" class="ticket-link">
+                                        Ticket
+                                    </a>
+                                    <a href="{{ follow_up.return_link }}" target="_blank" rel="noopener noreferrer" class="ticket-link return">
+                                        <i class="fa-brands fa-whatsapp"></i> <strong>Acessar Retorno</strong>
+                                    </a>
                                 </div>
-                                <small class="ticket-timestamp">Resolvido! Pronto para dar retorno.</small>
+                                
+                                <small class="ticket-timestamp">
+                                    <i class="fa-solid fa-bell"></i> Resolvido! O cliente aguarda retorno.
+                                </small>
                             </div>
+                            
                             <div class="ticket-actions">
                                 <form method="POST" action="{{ url_for('mark_followup_seen', followup_id=follow_up.id) }}">
-                                    <button type="submit" class="action-btn-icon btn--success" title="Marcar como Retornado">
-                                        <i class="fa-solid fa-user-check"></i>
+                                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <button type="submit" class="action-btn-icon btn--success" title="Já dei o retorno (Concluir)">
+                                        <i class="fa-solid fa-check"></i>
                                     </button>
                                 </form>
-                                <form method="POST" action="{{ url_for('remover_acompanhamento', followup_id=follow_up.id) }}" onsubmit="return confirm('Tem certeza que deseja remover este acompanhamento?');">
-                                    <button type="submit" class="action-btn-icon btn--danger" title="Remover Acompanhamento">
+                                
+                                <form method="POST" action="{{ url_for('remover_acompanhamento', followup_id=follow_up.id) }}" onsubmit="return confirm('Remover sem dar retorno?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <button type="submit" class="action-btn-icon btn--danger" title="Remover">
                                         <i class="fa-solid fa-trash"></i>
                                     </button>
                                 </form>
@@ -76,9 +315,13 @@
                     {% endfor %}
                 </ul>
             {% else %}
-                 <p class="placeholder-text">Nenhum ticket resolvido aguardando seu retorno.</p>
+                 <p class="placeholder-text">
+                    <i class="fa-solid fa-check-double"></i><br>
+                    Tudo limpo! Nenhum retorno pendente.
+                </p>
             {% endif %}
         </div>
+
     </div>
 </div>
 {% endblock %}
@@ -90,12 +333,14 @@ document.addEventListener('DOMContentLoaded', function() {
     if (filterInput) {
         filterInput.addEventListener('keyup', function() {
             const filterText = this.value.toLowerCase();
-            document.querySelectorAll('.ticket-item').forEach(function(item) {
+            const allItems = document.querySelectorAll('.ticket-item');
+            
+            allItems.forEach(function(item) {
                 const itemText = item.dataset.filterText;
                 if (itemText.includes(filterText)) {
-                    item.style.display = ''; /* Mostra o item */
+                    item.style.display = '';
                 } else {
-                    item.style.display = 'none'; /* Esconde o item */
+                    item.style.display = 'none';
                 }
             });
         });

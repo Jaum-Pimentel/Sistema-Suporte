@@ -6,122 +6,194 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
 <style>
-    /* Estilos específicos desta página */
-    .eventos-container {
+    /* --- TEMA DARK NEON (DASHBOARD) --- */
+    :root {
+        --glass-bg: rgba(30, 33, 48, 0.6);
+        --glass-border: rgba(255, 255, 255, 0.08);
+        --neon-purple: #d412d4;
+        --neon-blue: #4cc9f0;
+        --text-main: #e0e0e0;
+        --text-muted: #a0a0a0;
+    }
+
+    /* Layout Full Screen */
+    .page-container {
+        width: 100%;
+        max-width: 99%;
+        margin: 0 auto;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+
+    .page-header {
+        margin-bottom: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .page-header h1 {
+        font-size: 2rem;
+        color: #fff;
+        margin: 0;
+        text-shadow: 0 0 10px rgba(212, 18, 212, 0.4);
+    }
+
+    /* --- GRID PRINCIPAL --- */
+    .dashboard-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr; /* Duas colunas */
-        gap: 30px;
-        align-items: flex-start; /* Colunas começam no topo */
+        grid-template-columns: 350px 1fr;
+        gap: 25px;
+        align-items: start;
     }
-    .eventos-coluna {
-        background-color: #1f2937;
-        border-radius: 8px;
+
+    /* Cards de Vidro */
+    .glass-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
         padding: 25px;
-        border: 1px solid #374151;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     }
-    .eventos-coluna h2 {
-        color: #c4b5fd;
-        margin-top: 0;
-        margin-bottom: 25px;
-        padding-bottom: 15px;
-        border-bottom: 1px solid #374151;
+
+    /* Cabeçalho dos Cards (Flex para alinhar título e filtros) */
+    .card-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--glass-border);
+        flex-wrap: wrap; /* Permite quebrar linha em telas pequenas */
+        gap: 10px;
+    }
+    .card-title h2 {
+        font-size: 1.2rem;
+        color: var(--neon-purple);
+        margin: 0;
         display: flex;
         align-items: center;
         gap: 10px;
     }
 
-    /* Lista de Registro de Eventos */
+    /* --- FILTROS DO GRÁFICO (Estilo dos Botões) --- */
+    .chart-filters {
+        display: flex;
+        gap: 5px;
+        background: rgba(0, 0, 0, 0.4);
+        padding: 4px;
+        border-radius: 8px;
+    }
+    
+    .filter-btn {
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-weight: 500;
+    }
+    
+    .filter-btn:hover { color: #fff; background: rgba(255,255,255,0.1); }
+    
+    .filter-btn.active {
+        background: var(--neon-purple);
+        color: #fff;
+        font-weight: 600;
+        box-shadow: 0 2px 10px rgba(212, 18, 212, 0.3);
+    }
+
+    /* --- COLUNA 1: BOTÕES DE REGISTRO --- */
     .event-list {
         list-style: none;
         padding: 0;
         margin: 0;
         display: flex;
         flex-direction: column;
-        gap: 10px; /* Espaço entre os itens */
+        gap: 12px;
     }
-    .event-item {
+
+    .btn-register-event {
+        width: 100%;
+        padding: 15px 20px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--glass-border);
+        border-radius: 10px;
+        color: #fff;
+        font-size: 1rem;
+        font-weight: 500;
+        text-align: left;
+        cursor: pointer;
+        transition: all 0.3s ease;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 15px;
-        background-color: #2d3748;
-        border-radius: 6px;
-        border: 1px solid #4a5568;
-    }
-    .event-item-name {
-        color: #e5e7eb;
-        font-weight: 500;
-        font-size: 1.05em;
-    }
-    .btn-register-event {
-        padding: 8px 15px;
-        border: none;
-        border-radius: 5px;
-        background-image: linear-gradient(45deg, #8b5cf6, #6d28d9);
-        color: #fff;
-        font-size: 0.9em;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 10px rgba(139, 92, 246, 0.2);
-    }
-    .btn-register-event:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 15px rgba(139, 92, 246, 0.3);
     }
 
-    /* Tabela de Log Recente */
-    .log-table-container {
-        /* Garante que o container não mude de tamanho se a tabela estiver vazia */
-        min-height: 400px; 
+    .btn-register-event:hover {
+        background: linear-gradient(90deg, rgba(212, 18, 212, 0.2), transparent);
+        border-color: var(--neon-purple);
+        transform: translateX(5px);
+        box-shadow: -5px 0 15px rgba(212, 18, 212, 0.1);
     }
-    .log-table {
+    .btn-register-event:hover i { opacity: 1; color: var(--neon-purple); }
+    .btn-register-event i { opacity: 0; transition: opacity 0.3s; }
+
+
+    /* --- COLUNA 2: CHART E LOGS --- */
+    .chart-container {
+        position: relative;
+        height: 350px;
         width: 100%;
-        border-collapse: collapse;
-        color: #bdc3c7;
+        margin-bottom: 30px;
     }
-    .log-table th, .log-table td {
-        padding: 12px 10px;
-        text-align: left;
-        border-bottom: 1px solid #374151;
+
+    /* Tabela de Logs */
+    .log-table-container {
+        max-height: 450px;
+        overflow-y: auto;
+        border-radius: 10px;
+        border: 1px solid var(--glass-border);
     }
+    
+    .log-table { width: 100%; border-collapse: collapse; }
+    
     .log-table th {
-        color: #c4b5fd;
-        font-size: 0.9em;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        /* Cabeçalho fixo */
+        background: rgba(20, 20, 35, 0.95);
+        color: var(--neon-blue);
+        padding: 15px;
+        text-align: left;
         position: sticky;
         top: 0;
-        background-color: #1f2937; /* Fundo do header da tabela */
+        z-index: 2;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
     }
+    
     .log-table td {
-        font-size: 0.95em;
+        padding: 12px 15px;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        color: var(--text-main);
+        font-size: 0.95rem;
     }
-    .log-table tr:last-child td {
-        border-bottom: none;
-    }
-    /* Efeito zebrado */
-    .log-table tbody tr:nth-child(even) {
-        background-color: #232d3b; /* Fundo zebrado sutil */
-    }
-    .log-table td .log-user {
-        color: #e5e7eb;
-        font-weight: 500;
-    }
-    .log-table td .log-event {
-        color: #fff;
-    }
-    .log-table td .log-time {
-        font-size: 0.9em;
-        color: #9ca3af;
-    }
+    .log-table tr:hover { background: rgba(255,255,255,0.02); }
+    
+    .log-event { font-weight: 600; color: #fff; }
+    
+    /* CORREÇÃO DE COR DO USUÁRIO: Roxo bem claro (quase branco) */
+    .log-user { color: #e9d8fd; font-weight: 500; }
+    
+    .log-time { color: var(--text-muted); font-size: 0.85rem; }
 
-    /* Responsividade */
-    @media (max-width: 992px) {
-        .eventos-container {
-            grid-template-columns: 1fr; /* Coluna única */
-        }
+    @media (max-width: 1100px) {
+        .dashboard-grid { grid-template-columns: 1fr; }
+        .event-list { display: grid; grid-template-columns: 1fr 1fr; }
     }
 </style>
 {% endblock %}
@@ -129,202 +201,239 @@
 {% block content %}
 <div class="page-container">
     <div class="page-header">
-        <h1><i class="fa-solid fa-clipboard-list"></i> {{ title }}</h1>
-        <p>Registre ocorrências do app e veja o log de atividades.</p>
+        <h1><i class="fa-solid fa-chart-radar"></i> {{ title }}</h1>
     </div>
 
-    {% include 'includes/_flash_messages.html' %} {# Inclui seus flashes #}
+    {% include 'includes/_flash_messages.html' %}
 
-    <div class="eventos-container">
+    <div class="dashboard-grid">
         
-        <div class="eventos-coluna">
-            <h2><i class="fa-solid fa-plus-circle"></i> Registrar Ocorrência</h2>
+        <div class="glass-card">
+            <div class="card-title">
+                <h2><i class="fa-solid fa-fingerprint"></i> Ações Rápidas</h2>
+            </div>
+            
             <ul class="event-list">
                 {% for evento in tipos_de_evento %}
-                <li class="event-item">
-                    <span class="event-item-name">{{ evento.name }}</span>
+                <li>
                     <form method="POST" action="{{ url_for('registrar_evento', event_type_id=evento.id) }}" style="margin: 0;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        
                         <button type="submit" class="btn-register-event" 
-                                onclick="return confirm('Confirmar registro do evento: {{ evento.name }}?')">
-                            + Registrar
+                                onclick="return confirm('Confirmar registro: {{ evento.name }}?')">
+                            <span>{{ evento.name }}</span>
+                            <i class="fa-solid fa-arrow-right"></i>
                         </button>
                     </form>
                 </li>
                 {% else %}
-                <li class="empty-list-message" style="color: #6b7280; font-style: italic;">
-                    Nenhum tipo de evento configurado. (Rode o script de população no flask shell)
+                <li style="color: var(--text-muted); text-align: center; padding: 20px;">
+                    Nenhum evento configurado.
                 </li>
                 {% endfor %}
             </ul>
         </div>
 
-        <div class="eventos-coluna">
-            <h2><i class="fa-solid fa-chart-bar"></i> Dashboard (Hoje)</h2>
-            <div class="dashboard-chart-container" style="margin-bottom: 30px; height: 300px; position: relative;">
-                <canvas id="eventChart"></canvas>
-            </div>
+        <div class="right-column">
             
-            <h2><i class="fa-solid fa-history"></i> Log de Eventos Recentes</h2>
-            <div class="log-table-container" style="max-height: 400px; overflow-y: auto;">
-                <table class="log-table">
-                    <thead>
-                        <tr>
-                            <th>Evento</th>
-                            <th>Usuário</th>
-                            <th>Data/Hora (BRT)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="log-tbody">
-                        {% for log in logs_recentes %}
-                        
-                        <tr {% if loop.first %}data-log-id="{{ log.id }}"{% endif %}>
-                            
-                            <td><span class="log-event">{{ log.event_type.name }}</span></td>
-                            <td><span class="log-user">{{ log.user.name }}</span></td>
-                            <td><span class="log-time">{{ log.timestamp | brt }}</span></td>
-                        </tr>
-                        {% else %}
-                        
-                        <tr id="no-logs-row">
-                            <td colspan="3" style="text-align: center; padding: 20px; font-style: italic;">Nenhum evento registrado ainda.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <div class="glass-card" style="margin-bottom: 25px;">
+                <div class="card-title">
+                    <h2><i class="fa-solid fa-chart-column"></i> Visão Geral</h2>
+                    
+                    <div class="chart-filters">
+                        <button class="filter-btn active" onclick="filterChart('day', this)">Dia</button>
+                        <button class="filter-btn" onclick="filterChart('week', this)">Semana</button>
+                        <button class="filter-btn" onclick="filterChart('month', this)">Mês</button>
+                        <button class="filter-btn" onclick="filterChart('all', this)">Total</button>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="eventChart"></canvas>
+                </div>
             </div>
+
+            <div class="glass-card">
+                <div class="card-title">
+                    <h2><i class="fa-solid fa-list-ul"></i> Atividades Recentes</h2>
+                    <small style="color: var(--text-muted); font-size: 0.8rem;">
+                        <i class="fa-solid fa-sync fa-spin"></i> Ao vivo
+                    </small>
+                </div>
+
+                <div class="log-table-container">
+                    <table class="log-table">
+                        <thead>
+                            <tr>
+                                <th>Ocorrência</th>
+                                <th>Quem Registrou</th>
+                                <th>Horário (BRT)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="log-tbody">
+                            {% for log in logs_recentes %}
+                            <tr {% if loop.first %}data-log-id="{{ log.id }}"{% endif %}>
+                                <td><span class="log-event">{{ log.event_type.name }}</span></td>
+                                <td><span class="log-user">{{ log.user.name }}</span></td>
+                                <td><span class="log-time">{{ log.timestamp | brt }}</span></td>
+                            </tr>
+                            {% else %}
+                            <tr id="no-logs-row">
+                                <td colspan="3" style="text-align: center; padding: 30px; color: var(--text-muted);">
+                                    Nenhuma atividade registrada ainda.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         </div>
-    </div> </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
-{{ super() }} <script>
+{{ super() }} 
+<script>
+// Variável global do gráfico
+let myChart = null;
+
+// Cores Neon para cada barra
+const bgColors = [
+    'rgba(212, 18, 212, 0.8)',   // Roxo
+    'rgba(76, 201, 240, 0.8)',   // Azul
+    'rgba(16, 185, 129, 0.8)',   // Verde
+    'rgba(245, 158, 11, 0.8)',   // Laranja
+    'rgba(239, 68, 68, 0.8)',    // Vermelho
+    'rgba(139, 92, 246, 0.8)',   // Roxo Claro
+    'rgba(236, 72, 153, 0.8)',   // Rosa
+    'rgba(255, 255, 255, 0.8)'    // Branco
+];
+const borderColors = [
+    '#d412d4', '#4cc9f0', '#10b981', '#f59e0b', 
+    '#ef4444', '#8b5cf6', '#ec4899', '#ffffff'
+];
+
+// Dados Iniciais (Vem do Python)
+const initialData = {{ dashboard_data | tojson | safe }};
+
 document.addEventListener('DOMContentLoaded', function() {
     
-    // Configuração do Gráfico (Dashboard)
     const ctx = document.getElementById('eventChart');
     if (ctx) {
-        const dashboardData = {{ dashboard_data | tojson | safe }};
-        const colors = [
-            'rgba(255, 99, 132, 0.7)', 'rgba(54, 162, 235, 0.7)',
-            'rgba(255, 206, 86, 0.7)', 'rgba(75, 192, 192, 0.7)',
-            'rgba(153, 102, 255, 0.7)', 'rgba(255, 159, 64, 0.7)',
-            'rgba(199, 199, 199, 0.7)'
-        ];
-
-        new Chart(ctx, {
+        myChart = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: dashboardData.labels, 
+                labels: initialData.labels, 
                 datasets: [{
-                    label: 'Contagem de Eventos (Hoje)',
-                    data: dashboardData.counts,
-                    backgroundColor: colors.slice(0, dashboardData.labels.length),
-                    borderColor: 'rgba(255, 255, 255, 0.1)',
-                    borderWidth: 1
+                    label: 'Ocorrências',
+                    data: initialData.counts,
+                    backgroundColor: bgColors, 
+                    borderColor: borderColors,
+                    borderWidth: 1,
+                    borderRadius: 6,
+                    barThickness: 40,
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }, 
+                    tooltip: {
+                        backgroundColor: 'rgba(20, 20, 35, 0.95)',
+                        titleColor: '#4cc9f0',
+                        bodyColor: '#fff',
+                        borderColor: 'rgba(255,255,255,0.1)',
+                        borderWidth: 1,
+                        padding: 10,
+                        displayColors: false
+                    }
+                },
                 scales: {
                     y: {
                         beginAtZero: true,
-                        ticks: { color: '#9ca3af', stepSize: 1 },
-                        grid: { color: '#374151' }
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: { color: '#a0a0a0', stepSize: 1 }
                     },
                     x: {
-                         ticks: { color: '#9ca3af' },
-                         grid: { color: 'transparent' }
-                    }
-                },
-                plugins: {
-                    legend: { display: false },
-                    title: {
-                        display: true,
-                        text: 'Contagem de Eventos Registrados Hoje (BRT)',
-                        color: '#e5e7eb',
-                        font: { size: 16, family: 'Poppins' }
+                        grid: { display: false },
+                        ticks: { color: '#e0e0e0', font: {size: 11} }
                     }
                 }
             }
         });
     }
 
-    // ===========================================
-    // == NOVO SCRIPT DE AUTO SYNC (POLLING) ==
-    // ===========================================
-
-    // Pega o ID do log mais recente que foi carregado com a página
-    let latestLogId = 0; // Começa em 0
-    const firstRow = document.querySelector('#log-tbody tr[data-log-id]');
-    if (firstRow) {
-        latestLogId = parseInt(firstRow.dataset.logId, 10);
-    }
-    
-    const tbody = document.getElementById('log-tbody');
-    const noLogsRow = document.getElementById('no-logs-row');
-
-    // Função que busca por novos logs
-    function fetchNewLogs() {
-        // Pergunta à API por logs mais novos que o 'latestLogId'
-        fetch(`/api/eventos/recentes?since_id=${latestLogId}`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Erro de rede: ${response.statusText}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.novos_eventos && data.novos_eventos.length > 0) {
-                    
-                    console.log(`Recebidos ${data.novos_eventos.length} novos eventos.`);
-                    
-                    // Se a linha "Nenhum evento" existir, remove ela
-                    if (noLogsRow && noLogsRow.parentElement) { // Verifica se ainda está no DOM
-                        noLogsRow.remove();
-                    }
-
-                    // Atualiza o ID mais recente (o primeiro da lista é o mais novo)
-                    latestLogId = data.novos_eventos[0].id;
-                    
-                    // Invertemos a lista para inserir o mais antigo primeiro
-                    // e o mais novo por último (no topo da tabela)
-                    data.novos_eventos.reverse().forEach(log => {
-                        // Cria a nova linha da tabela
-                        const newRow = document.createElement('tr');
-                        
-                        // Adiciona o data-log-id na primeira linha que está sendo inserida
-                        if (log.id === latestLogId) {
-                            newRow.setAttribute('data-log-id', log.id);
-                        }
-                        
-                        // Preenche as células
-                        newRow.innerHTML = `
-                            <td><span class="log-event">${log.event_name}</span></td>
-                            <td><span class="log-user">${log.user_name}</span></td>
-                            <td><span class="log-time">${log.timestamp_brt}</span></td>
-                        `;
-                        
-                        // Adiciona a nova linha no TOPO do tbody
-                        if (tbody) {
-                            tbody.prepend(newRow);
-                        }
-                    });
-                } else {
-                    // console.log("Nenhum evento novo.");
-                }
-            })
-            .catch(error => {
-                console.error("Erro ao buscar novos eventos:", error);
-                // Para o polling se houver um erro grave (ex: 404, 500)
-                // clearInterval(syncInterval); 
-            });
-    }
-
-    // Inicia o "Auto Sync": chama a função fetchNewLogs a cada 10 segundos
-    const syncInterval = setInterval(fetchNewLogs, 10000); // 10000 ms = 10 segundos
-    
-    // === FIM DO SCRIPT DE AUTO SYNC ===
+    // Inicia o Auto Sync da tabela
+    setInterval(fetchNewLogs, 5000); 
 });
+
+// --- FUNÇÃO DE FILTRO ---
+function filterChart(period, btn) {
+    // 1. Atualiza visual dos botões
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    // 2. Busca dados reais no banco
+    fetch(`/api/chart-data?period=${period}`)
+        .then(response => response.json())
+        .then(data => {
+            if (myChart) {
+                myChart.data.labels = data.labels;
+                myChart.data.datasets[0].data = data.counts;
+                
+                if (data.labels.length === 0) {
+                    myChart.data.labels = ["Sem dados"];
+                    myChart.data.datasets[0].data = [0];
+                }
+                
+                myChart.update();
+            }
+        })
+        .catch(err => console.error("Erro ao filtrar gráfico:", err));
+}
+
+// --- AUTO SYNC DA TABELA ---
+let latestLogId = 0;
+const firstRow = document.querySelector('#log-tbody tr[data-log-id]');
+if (firstRow) latestLogId = parseInt(firstRow.dataset.logId, 10);
+
+const tbody = document.getElementById('log-tbody');
+const noLogsRow = document.getElementById('no-logs-row');
+
+function fetchNewLogs() {
+    fetch(`/api/eventos/recentes?since_id=${latestLogId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.novos_eventos && data.novos_eventos.length > 0) {
+                if (noLogsRow) noLogsRow.remove();
+                latestLogId = data.novos_eventos[0].id;
+                
+                data.novos_eventos.reverse().forEach(log => {
+                    const newRow = document.createElement('tr');
+                    if (log.id === latestLogId) newRow.setAttribute('data-log-id', log.id);
+                    newRow.style.animation = "highlight 2s";
+                    
+                    newRow.innerHTML = `
+                        <td><span class="log-event">${log.event_name}</span></td>
+                        <td><span class="log-user">${log.user_name}</span></td>
+                        <td><span class="log-time">${log.timestamp_brt}</span></td>
+                    `;
+                    if (tbody) tbody.prepend(newRow);
+                });
+            }
+        })
+        .catch(err => console.error("Sync error:", err));
+}
 </script>
+
+<style>
+@keyframes highlight {
+    0% { background-color: rgba(212, 18, 212, 0.3); }
+    100% { background-color: transparent; }
+}
+</style>
 {% endblock %}

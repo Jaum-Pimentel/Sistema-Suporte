@@ -1,10 +1,123 @@
 {% extends "base.html" %}
 {% block title %}{{ title }}{% endblock %}
 
+{% block head_extra %}
+<style>
+    /* --- TEMA DARK NEON (LINKS ÚTEIS) --- */
+    :root {
+        --glass-bg: rgba(30, 33, 48, 0.6);
+        --glass-border: rgba(255, 255, 255, 0.08);
+        --neon-purple: #d412d4;
+        --neon-blue: #4cc9f0;
+        --text-main: #e0e0e0;
+        --text-muted: #a0a0a0;
+        --danger: #ff4d4d;
+        --dark-input: rgba(15, 12, 41, 0.6);
+    }
+
+    .content-padding {
+        width: 100%; max-width: 99%; margin: 0 auto; padding: 20px 30px; box-sizing: border-box;
+    }
+
+    /* Cabeçalho */
+    .page-header {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 30px; border-bottom: 1px solid var(--glass-border); padding-bottom: 15px;
+    }
+
+    .page-header h1 {
+        font-size: 2rem; color: #fff; margin: 0; text-shadow: 0 0 10px rgba(212, 18, 212, 0.3);
+        display: flex; align-items: center; gap: 10px;
+    }
+
+    /* Campo de Filtro no Header */
+    .filter-box {
+        position: relative; width: 300px;
+    }
+    .filter-box input {
+        width: 100%; padding: 10px 15px 10px 40px; border-radius: 50px;
+        border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: #fff; outline: none;
+        transition: border-color 0.3s; box-sizing: border-box;
+    }
+    .filter-box input:focus { border-color: var(--neon-blue); }
+    .filter-box i {
+        position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-muted);
+    }
+
+    /* Form Adicionar */
+    .add-link-section {
+        background: var(--glass-bg); backdrop-filter: blur(12px); border: 1px solid var(--glass-border);
+        border-radius: 16px; padding: 20px; margin-bottom: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    .add-link-section h2 { margin-top: 0; color: var(--neon-blue); font-size: 1.2rem; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+    
+    .form-grid { display: grid; grid-template-columns: 1fr 2fr auto; gap: 15px; align-items: end; }
+    .form-group label { display: block; color: #fff; margin-bottom: 5px; font-weight: 500; font-size: 0.9rem; }
+    .input-wrapper { position: relative; }
+    .input-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--neon-purple); }
+    
+    .form-control {
+        width: 100%; padding: 12px 15px 12px 40px; background: var(--dark-input);
+        border: 1px solid var(--glass-border); border-radius: 50px; color: #fff;
+        font-family: 'Poppins', sans-serif; font-size: 0.95rem; box-sizing: border-box; transition: border-color 0.3s;
+    }
+    .form-control:focus { outline: none; border-color: var(--neon-purple); }
+
+    .btn-add {
+        background: linear-gradient(45deg, #7b2cbf, var(--neon-purple)); color: #fff; border: none;
+        padding: 12px 30px; border-radius: 50px; font-weight: 600; cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s; height: 45px; white-space: nowrap;
+    }
+    .btn-add:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(212, 18, 212, 0.4); }
+
+    /* Grid Links */
+    .links-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 25px; }
+    
+    .link-card {
+        background: var(--glass-bg); backdrop-filter: blur(10px); border: 1px solid var(--glass-border);
+        border-radius: 16px; position: relative; transition: all 0.3s ease; height: 160px;
+        display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden;
+    }
+    .link-card:hover { transform: translateY(-5px); border-color: var(--neon-blue); box-shadow: 0 0 20px rgba(76, 201, 240, 0.2); background: rgba(40, 40, 60, 0.8); }
+    
+    .link-click-area { text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; padding: 20px; box-sizing: border-box; }
+    .link-icon { width: 64px; height: 64px; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; border-radius: 12px; background: rgba(255, 255, 255, 0.05); transition: transform 0.3s; }
+    .link-icon img { width: 100%; height: 100%; object-fit: contain; border-radius: 8px; }
+    .link-icon i { font-size: 2.5rem; color: var(--neon-purple); }
+    .link-card:hover .link-icon { transform: scale(1.1); }
+    .link-title { font-size: 0.95rem; font-weight: 600; color: #fff; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+
+    /* Botão Deletar */
+    .delete-form { position: absolute; top: 10px; right: 10px; z-index: 10; opacity: 0; transition: opacity 0.2s; }
+    .link-card:hover .delete-form { opacity: 1; }
+    .link-delete-btn { background: rgba(0, 0, 0, 0.6); border: 1px solid var(--danger); color: var(--danger); border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
+    .link-delete-btn:hover { background: var(--danger); color: #fff; }
+
+    .alert { padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; }
+    .alert-success { background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #6ee7b7; }
+    .alert-danger { background: rgba(220, 38, 38, 0.2); border: 1px solid #ef4444; color: #fca5a5; }
+    .empty-state { grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 40px; border: 1px dashed var(--glass-border); border-radius: 16px; }
+
+    @media (max-width: 768px) {
+        .page-header { flex-direction: column; align-items: flex-start; gap: 15px; }
+        .filter-box { width: 100%; max-width: 100%; }
+        .form-grid { grid-template-columns: 1fr; }
+        .links-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+        .delete-form { opacity: 1; }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="page-container">
+<div class="content-padding">
+    
     <div class="page-header">
-        <h1>{{ title }}</h1>
+        <h1><i class="fa-solid fa-link"></i> {{ title }}</h1>
+        
+        <div class="filter-box">
+            <i class="fa-solid fa-search"></i>
+            <input type="text" id="linkFilter" placeholder="Filtrar links por título...">
+        </div>
     </div>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -13,45 +126,91 @@
         {% endfor %}{% endif %}
     {% endwith %}
 
-    <div class="log-time-form" style="margin-bottom: 2rem;">
-        <h2>Adicionar Novo Link</h2>
+    <div class="add-link-section">
+        <h2><i class="fa-solid fa-plus-circle"></i> Adicionar Novo Atalho</h2>
         <form method="POST" action="{{ url_for('links_uteis') }}">
+             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             {{ form.hidden_tag() }}
-            <div class="form-row">
+            
+            <div class="form-grid">
                 <div class="form-group">
-                    {{ form.title.label }} {{ form.title(class="form-control", placeholder="Ex: Freshchat") }}
+                    {{ form.title.label }} 
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-tag input-icon"></i>
+                        {{ form.title(class="form-control", placeholder="Ex: Portal Cliente") }}
+                    </div>
                 </div>
+                
                 <div class="form-group">
-                    {{ form.url.label }} {{ form.url(class="form-control", placeholder="https://exemplo.com.br") }}
+                    {{ form.url.label }} 
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-globe input-icon"></i>
+                        {{ form.url(class="form-control", placeholder="https://...") }}
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>&nbsp;</label> 
+                    {{ form.submit(class="btn-add", value="Salvar Link") }}
                 </div>
             </div>
-            {{ form.submit(class="btn btn-primary") }}
         </form>
     </div>
-    <hr style="border-color: #3a3a5a; margin: 2rem 0;">
 
-    <div class="links-grid">
+    <div class="links-grid" id="linksContainer">
         {% for link in links %}
         <div class="link-card">
-            <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer">
+            
+            <form method="POST" action="{{ url_for('deletar_link', link_id=link.id) }}" class="delete-form" onsubmit="return confirm('Remover este link?');">
+                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="submit" class="link-delete-btn" title="Remover Link">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </form>
+
+            <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer" class="link-click-area">
                 <div class="link-icon">
                     {% if link.icon_url %}
-                        <img src="{{ link.icon_url }}" alt="Logo de {{ link.title }}">
+                        <img src="{{ link.icon_url }}" alt="Logo">
                     {% else %}
                         <i class="fa-solid fa-globe"></i>
                     {% endif %}
                 </div>
                 <span class="link-title">{{ link.title }}</span>
             </a>
-            <form method="POST" action="{{ url_for('deletar_link', link_id=link.id) }}">
-                <button type="submit" class="link-delete-btn" title="Remover Link">
-                    <i class="fa-solid fa-times"></i>
-                </button>
-            </form>
         </div>
         {% else %}
-        <p>Nenhum link rápido adicionado ainda.</p>
+        <div class="empty-state">
+            <i class="fa-regular fa-folder-open" style="font-size: 2rem; margin-bottom: 10px; opacity: 0.5;"></i>
+            <p>Nenhum link rápido adicionado ainda.</p>
+        </div>
         {% endfor %}
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // --- LÓGICA DE FILTRO JS ---
+    const filterInput = document.getElementById('linkFilter');
+    const cards = document.querySelectorAll('.link-card');
+
+    if (filterInput) {
+        filterInput.addEventListener('keyup', function(e) {
+            const term = e.target.value.toLowerCase();
+
+            cards.forEach(card => {
+                const title = card.querySelector('.link-title').textContent.toLowerCase();
+                if (title.includes(term)) {
+                    card.style.display = 'flex'; // Mostra
+                } else {
+                    card.style.display = 'none'; // Esconde
+                }
+            });
+        });
+    }
+});
+</script>
 {% endblock %}

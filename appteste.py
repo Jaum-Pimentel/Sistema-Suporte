@@ -17,7 +17,7 @@ app.config['SECRET_KEY'] = 'uma-chave-secreta-muito-dificil-de-adivinhar'
 
 # URL do Bot do Discord (configure se necessário)
 DISCORD_BOT_URL = "http://127.0.0.1:5001/notify"
-
+csrf = CSRFProtect(app)
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'

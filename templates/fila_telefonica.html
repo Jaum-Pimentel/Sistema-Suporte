@@ -46,6 +46,7 @@
 
             <div class="actions-container">
                 <form method="POST" action="{{ url_for('atender_telefone') }}" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     {# O botão principal só aparece para a pessoa da vez #}
                     {% if current_user.id == current_attendant_id %}
                         <button type="submit" class="atender-btn">

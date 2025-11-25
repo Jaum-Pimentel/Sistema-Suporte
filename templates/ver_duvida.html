@@ -1,40 +1,244 @@
 {% extends "base.html" %}
 
-{% block title %}{{ title }}{% endblock %}
+{% block title %}{{ duvida.titulo }} - Detalhes{% endblock %}
 
 {% block head_extra %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+<style>
+    /* --- TEMA DARK NEON (DETALHES DA DÚVIDA) --- */
+    :root {
+        --glass-bg: rgba(30, 33, 48, 0.6);
+        --glass-border: rgba(255, 255, 255, 0.08);
+        --neon-purple: #d412d4;
+        --neon-blue: #4cc9f0;
+        --text-main: #e0e0e0;
+        --text-muted: #a0a0a0;
+        --success: #10b981;
+    }
+
+    .duvida-detalhe-wrapper {
+        max-width: 1000px; /* Largura ótima para leitura */
+        margin: 0 auto;
+        padding: 30px 20px;
+    }
+
+    /* Cabeçalho com Botão Voltar */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        border-bottom: 1px solid var(--glass-border);
+        padding-bottom: 20px;
+        gap: 20px;
+    }
+
+    .page-header h1 {
+        font-size: 1.8rem;
+        color: #fff;
+        margin: 0;
+        text-shadow: 0 0 15px rgba(212, 18, 212, 0.4);
+        line-height: 1.3;
+    }
+
+    .btn-clear-duvida {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--glass-border);
+        color: var(--text-muted);
+        padding: 10px 20px;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .btn-clear-duvida:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        border-color: #fff;
+    }
+
+    /* --- CARTÃO DA DÚVIDA PRINCIPAL --- */
+    .duvida-box {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--neon-purple); /* Borda roxa destaque */
+        border-radius: 16px;
+        padding: 30px;
+        margin-bottom: 40px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    }
+
+    /* Meta Info (Autor, Data, Categoria) */
+    .duvida-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        padding-bottom: 20px;
+        margin-bottom: 20px;
+        border-bottom: 1px dashed var(--glass-border);
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+
+    .duvida-meta span {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .duvida-meta i { color: var(--neon-blue); }
+    .duvida-meta strong { color: #fff; margin-right: 4px; }
+
+    .duvida-category {
+        background: rgba(76, 201, 240, 0.1);
+        color: var(--neon-blue) !important;
+        padding: 2px 10px;
+        border-radius: 4px;
+        font-weight: 600;
+    }
+
+    /* Corpo do Texto */
+    .section-title {
+        font-size: 1.2rem;
+        color: var(--neon-purple);
+        margin-bottom: 15px;
+        display: block;
+    }
+
+    .guia-content-rendered {
+        color: var(--text-main);
+        line-height: 1.7;
+        font-size: 1.05rem;
+    }
+    
+    /* Estilos para Markdown dentro do conteúdo */
+    .guia-content-rendered p { margin-bottom: 15px; }
+    .guia-content-rendered strong { color: #fff; }
+    .guia-content-rendered code {
+        background: #1a1b26;
+        color: #ff9e64;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: 'Fira Code', monospace;
+        font-size: 0.9em;
+    }
+    .guia-content-rendered pre {
+        background: #1a1b26;
+        padding: 15px;
+        border-radius: 8px;
+        overflow-x: auto;
+        border: 1px solid var(--glass-border);
+    }
+
+    /* --- ÁREA DE RESPOSTAS --- */
+    .respostas-container {
+        margin-top: 40px;
+    }
+    
+    .respostas-container h2.section-title {
+        font-size: 1.5rem;
+        color: #fff;
+        border-bottom: 1px solid var(--glass-border);
+        padding-bottom: 15px;
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .resposta-list {
+        list-style: none;
+        padding: 0;
+    }
+
+    .resposta-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--glass-border);
+        border-left: 4px solid var(--success); /* Borda verde indicando aprovada */
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 20px;
+        position: relative;
+    }
+
+    .resposta-meta {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-bottom: 15px;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        padding-bottom: 10px;
+    }
+    
+    .resposta-author { color: #7289da; /* Cor Discord */ font-weight: 600; display: flex; align-items: center; gap: 6px; }
+    .resposta-date { display: flex; align-items: center; gap: 6px; }
+
+    .resposta-content-rendered {
+        color: #e0e0e0;
+        line-height: 1.6;
+    }
+
+    .empty-list-message {
+        background: rgba(255,255,255,0.02);
+        border: 1px dashed var(--glass-border);
+        border-radius: 12px;
+        padding: 30px;
+        text-align: center;
+        color: var(--text-muted);
+        font-style: italic;
+    }
+
+    /* Responsividade */
+    @media (max-width: 768px) {
+        .page-header { flex-direction: column; align-items: flex-start; }
+        .btn-clear-duvida { align-self: flex-start; }
+        .duvida-meta { flex-direction: column; gap: 10px; }
+        .resposta-meta { flex-direction: column; gap: 5px; }
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="page-container duvida-detalhe-wrapper"> 
     
-    <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;color: aliceblue; ">
+    <div class="page-header">
         <h1>{{ duvida.titulo }}</h1>
-        <a href="{{ url_for('listar_duvidas') }}" class="btn-clear-duvida" style="white-space: nowrap;"> 
-            <i class="fa-solid fa-arrow-left"></i> Voltar para Dúvidas
+        <a href="{{ url_for('listar_duvidas') }}" class="btn-clear-duvida"> 
+            <i class="fa-solid fa-arrow-left"></i> Voltar
         </a>
     </div>
 
     <div class="duvida-box">
-        <div class="duvida-header">
-            <div class="duvida-meta">
-                <span class="duvida-author" title="Autor da Dúvida">
-                    <i class="fa-solid fa-user-pen"></i>
-                    <strong>Enviada por:</strong> {{ duvida.author.name if duvida.author else 'Desconhecido' }}
-                </span>
-                <span class="duvida-date" title="Data de Criação">
-                    <i class="fa-solid fa-calendar-days"></i>
-                    <strong>Em:</strong> {{ duvida.created_at.strftime('%d/%m/%Y às %H:%M') }}
-                </span>
-                <span class="duvida-category" title="Categoria">
-                    <i class="fa-solid fa-tag"></i>
-                    <strong>Categoria:</strong> {{ duvida.categoria }}
-                </span>
-            </div>
+        <div class="duvida-meta">
+            <span title="Autor">
+                <i class="fa-solid fa-user-pen"></i>
+                <strong>Autor:</strong> {{ duvida.author.name if duvida.author else 'Desconhecido' }}
+            </span>
+            <span title="Data">
+                <i class="fa-solid fa-calendar-days"></i>
+                <strong>Data:</strong> {{ duvida.created_at.strftime('%d/%m/%Y às %H:%M') }}
+            </span>
+            <span title="Categoria" class="duvida-category">
+                {{ duvida.categoria }}
+            </span>
         </div>
+
         <div class="duvida-body">
-            <h3 class="section-title">Descrição Completa da Dúvida</h3>
+            <h3 class="section-title">Descrição</h3>
+            
+            {% if duvida.image_filename %}
+            <div class="duvida-image-container" style="text-align: center; margin-bottom: 25px;">
+                <img src="{{ url_for('static', filename='uploads/duvidas/' + duvida.image_filename) }}" 
+                     alt="Imagem da Dúvida" 
+                     style="max-width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--glass-border); box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
+            </div>
+            {% endif %}
+            
             <div class="guia-content-rendered">
                 {{ duvida.descricao | render_markdown | safe }}
             </div>
@@ -43,8 +247,8 @@
 
     <div class="respostas-container">
         <h2 class="section-title">
-            <i class="fa-solid fa-circle-check" style="color: #2ecc71;"></i> 
-            Respostas Aprovadas ({{ duvida.respostas.count() }})
+            <i class="fa-solid fa-circle-check" style="color: var(--success);"></i> 
+            Respostas Aprovadas <span style="font-size: 0.8em; color: var(--text-muted); margin-left: 10px;">({{ duvida.respostas.count() }})</span>
         </h2>
 
         {% if duvida.respostas.count() > 0 %}
@@ -52,13 +256,13 @@
                 {% for resposta in respostas %}
                 <li class="resposta-card">
                     <div class="resposta-meta">
-                        <span class="resposta-author" title="Autor da Resposta no Discord">
+                        <span class="resposta-author">
                             <i class="fa-brands fa-discord"></i>
-                            <strong>Resposta do Discord</strong> (ID: {{ resposta.author_discord_id or 'N/A' }})
+                            Via Discord (ID: {{ resposta.author_discord_id or 'N/A' }})
                         </span>
-                        <span class="resposta-date" title="Data da Aprovação">
-                            <i class="fa-solid fa-calendar-check"></i>
-                            <strong>Aprovada em:</strong> {{ resposta.created_at.strftime('%d/%m/%Y às %H:%M') }}
+                        <span class="resposta-date">
+                            <i class="fa-solid fa-calendar-check" style="color: var(--success);"></i>
+                            {{ resposta.created_at.strftime('%d/%m/%Y às %H:%M') }}
                         </span>
                     </div>
                     <div class="resposta-content-rendered">
@@ -68,15 +272,16 @@
                 {% endfor %}
             </ul>
         {% else %}
-            <div class="empty-list-message" style="padding: 20px 0; text-align: left;">
+            <div class="empty-list-message">
+                <i class="fa-brands fa-discord" style="font-size: 2rem; margin-bottom: 10px; opacity: 0.5;"></i><br>
                 Ainda não há respostas aprovadas (marcadas com ✅ no Discord) para esta dúvida.
             </div>
         {% endif %}
     </div>
 
-</div> {% endblock %}
+</div> 
+{% endblock %}
 
 {% block scripts %}
 {{ super() }}
-{# Scripts específicos desta página, se necessário #}
 {% endblock %}

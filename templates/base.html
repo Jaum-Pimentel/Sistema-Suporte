@@ -287,14 +287,14 @@
                     ">AUVO</h1>
                     <span style="
                         color: #d412d4; 
-                        font-size: 1.2em; 
+                        font-size: 1.5em; 
                         font-family: 'Poppins', sans-serif; 
                         font-weight: 300; 
                         display: block; 
                         margin-top: -5px; 
                         letter-spacing: 4px;
                         margin-left: 2px;
-                    ">SUP</span>
+                    ">TOOLS</span>
                 </div>
             </div>
 
@@ -361,7 +361,12 @@
                         <span>Links Úteis</span>
                     </a>
                 </li>
-
+<li class="menu-item">
+    <a href="{{ url_for('listar_hubspot') }}">
+        <i class="fa-brands fa-hubspot menu-icon"></i>
+        <span>Solicitações HubSpot</span>
+    </a>
+</li>
                 <li class="menu-item has-submenu" id="tickets-menu">
                     <a href="#">
                         <i class="fa-solid fa-ticket menu-icon"></i>
@@ -372,17 +377,12 @@
                         <li><a href="{{ url_for('tickets_retornar') }}">Tickets para Retornar</a></li>
                     </ul>
                 </li>
-
-                <li class="menu-item has-submenu" id="demanda-menu">
-                    <a href="#">
-                        <i class="fa-solid fa-table-columns menu-icon"></i>
-                        <span>Gerir Demanda </span>
-                    </a>
-                    <ul class="submenu">
-                        <li><a href="{{ url_for('kanban_individual') }}">Minha Gestão</a></li>
-                        <li><a href="{{ url_for('kanban_grupo') }}">Gestão em Grupo</a></li>
-                    </ul>
-                </li>
+                <li class="menu-item">
+    <a href="http://192.168.92.127:5010/" target="_blank"> 
+        <i class="fa-solid fa-graduation-cap menu-icon"></i>
+        <span>Onboarding Suporte</span>
+    </a>
+</li>
             </ul>
 
             <div class="sidebar-footer">

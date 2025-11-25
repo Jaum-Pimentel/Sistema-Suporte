@@ -62,18 +62,83 @@
     .reg-form-control { width: 100%; padding: 12px 15px 12px 45px; background: rgba(15, 15, 25, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; color: #fff; font-size: 0.95em; transition: all 0.3s; box-sizing: border-box; }
     .reg-form-control:focus { border-color: #d412d4; background: rgba(15, 15, 25, 0.9); box-shadow: 0 0 12px rgba(212, 18, 212, 0.25); outline: none; }
     .reg-label-with-tooltip { display: flex; align-items: center; justify-content: space-between; }
-    .reg-tooltip-icon { color: #4cc9f0; cursor: help; margin-left: 5px; }
     .reg-form-actions { margin-top: 30px; text-align: center; }
     .reg-submit-btn { width: 100%; max-width: 300px; padding: 14px; background: linear-gradient(45deg, #7b2cbf, #d412d4); border: none; border-radius: 50px; color: white; font-weight: 700; font-size: 1.1em; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 5px 20px rgba(123, 44, 191, 0.4); }
     .reg-submit-btn:hover { transform: scale(1.02); box-shadow: 0 10px 30px rgba(123, 44, 191, 0.6); }
     .reg-switch-form-link { display: block; text-align: center; margin-top: 20px; color: #a0a0a0; text-decoration: none; font-size: 0.9em; }
     .reg-switch-form-link:hover { color: #fff; text-decoration: underline; }
+    
     .reg-error-text { color: #ff4d4d; font-size: 0.8em; margin-top: 5px; display: block; }
     .reg-password-toggle { position: absolute; right: 15px; top: 42px; color: #a0a0a0; cursor: pointer; z-index: 3; }
     .reg-password-toggle:hover { color: #fff; }
     .flash { padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center; font-weight: 500; }
     .flash.danger { background: rgba(255, 0, 0, 0.15); border: 1px solid #ff4d4d; color: #ffbdbd; }
     .flash.success { background: rgba(0, 255, 0, 0.15); border: 1px solid #00ff00; color: #ccffcc; }
+
+    /* --- CSS DO TOOLTIP (CORRIGIDO E OTIMIZADO) --- */
+    .discord-help-container {
+        position: relative;
+        display: inline-block;
+        cursor: help;
+        margin-left: 8px; /* Espaço entre texto e icone */
+    }
+
+    .discord-help-icon {
+        color: #4cc9f0;
+        font-size: 1.1rem;
+        transition: color 0.3s;
+    }
+    .discord-help-container:hover .discord-help-icon {
+        color: #fff;
+        text-shadow: 0 0 8px #4cc9f0;
+    }
+
+    .discord-tooltip-box {
+        visibility: hidden;
+        opacity: 0;
+        width: 240px;
+        background-color: rgba(15, 15, 30, 0.98);
+        border: 1px solid #4cc9f0;
+        color: #e0e0e0;
+        text-align: left;
+        border-radius: 8px;
+        padding: 12px;
+        position: absolute;
+        z-index: 1000; /* Z-index alto */
+        bottom: 135%; /* Aparece acima */
+        left: 50%;
+        transform: translateX(-90%); /* Ajusta para não sair da caixa */
+        box-shadow: 0 5px 15px rgba(0,0,0,0.8);
+        transition: opacity 0.3s, bottom 0.3s;
+        font-size: 0.85em;
+        line-height: 1.4;
+        pointer-events: none;
+    }
+
+    .discord-tooltip-box::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 90%;
+        margin-left: -5px;
+        border-width: 6px;
+        border-style: solid;
+        border-color: #4cc9f0 transparent transparent transparent;
+    }
+
+    .discord-help-container:hover .discord-tooltip-box {
+        visibility: visible;
+        opacity: 1;
+        bottom: 145%;
+    }
+
+    .discord-tooltip-box strong { 
+        display: block; 
+        color: #4cc9f0; 
+        margin-bottom: 5px; 
+        border-bottom: 1px solid rgba(76, 201, 240, 0.3);
+        padding-bottom: 4px;
+    }
 </style>
 
 <div class="reg-form-container">
@@ -83,7 +148,7 @@
     <div class="reg-form-box"> 
        <div class="reg-form-header">
             <h2>Junte-se ao AUVO</h2>
-            <p>Crie sua conta e acesse o painel SUP</p>
+            <p>Crie sua conta e acesse o painel Tools</p>
         </div>
         <form method="POST" action="">
             {{ form.hidden_tag() }}
@@ -111,14 +176,24 @@
                 </div>
 
                 <div class="reg-form-column">
+                    
                     <div class="reg-input-group">
                         <div class="reg-label-with-tooltip">
                             {{ form.discord_id.label }}
-                            <div title="Clique com botão direito no seu usuário no Discord > Copiar ID" style="cursor: help; color: #4cc9f0;">
-                                <i class="fa-solid fa-circle-info"></i>
+                            
+                            <div class="discord-help-container">
+                                <i class="fas fa-info-circle discord-help-icon"></i>
+                                
+                                <div class="discord-tooltip-box">
+                                    <strong><i class="fab fa-discord"></i> Como pegar o ID:</strong>
+                                    1. Vá em <b>Configurações</b> > <b>Avançado</b>.<br>
+                                    2. Ative o <b>Modo Desenvolvedor</b>.<br>
+                                    3. Clique com botão direito no seu nome e <b>Copiar ID</b>.
+                                </div>
                             </div>
                         </div>
-                         <i class="fa-brands fa-discord reg-icon"></i>
+
+                         <i class="fab fa-discord reg-icon"></i>
                         {{ form.discord_id(placeholder="ID numérico do Discord", class="reg-form-control") }}
                         {% if form.discord_id.errors %}<span class="reg-error-text">{{ form.discord_id.errors[0] }}</span>{% endif %}
                     </div>

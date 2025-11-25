@@ -4,21 +4,202 @@
 
 {% block head_extra %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+<style>
+    /* --- TEMA DARK NEON (FORMULÁRIO) --- */
+    :root {
+        --glass-bg: rgba(30, 33, 48, 0.6);
+        --glass-border: rgba(255, 255, 255, 0.08);
+        --neon-purple: #d412d4;
+        --neon-blue: #4cc9f0;
+        --dark-input: rgba(15, 12, 41, 0.8);
+        --text-main: #e0e0e0;
+    }
+
+    .page-container {
+        max-width: 800px; /* Formulário centralizado e focado */
+        margin: 0 auto;
+        padding: 40px 20px;
+    }
+
+    /* Cabeçalho */
+    .page-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .page-header h1 {
+        font-size: 2.2rem;
+        color: #fff;
+        margin: 0 0 10px 0;
+        text-shadow: 0 0 15px rgba(212, 18, 212, 0.4);
+    }
+
+    .page-header p {
+        color: var(--text-muted);
+        font-size: 1rem;
+    }
+
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--neon-blue);
+        text-decoration: none;
+        margin-top: 15px;
+        font-weight: 500;
+        transition: color 0.3s;
+    }
+    .btn-back:hover { color: #fff; }
+
+    /* --- CARD DO FORMULÁRIO --- */
+    .form-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        padding: 40px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Barra colorida no topo */
+    .form-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 4px;
+        background: linear-gradient(90deg, var(--neon-purple), var(--neon-blue));
+    }
+
+    /* Inputs e Labels */
+    .form-group { margin-bottom: 25px; }
+
+    .form-label {
+        display: block;
+        color: #fff;
+        margin-bottom: 8px;
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+
+    .input-wrapper {
+        position: relative;
+    }
+
+    .input-icon {
+        position: absolute;
+        left: 15px;
+        top: 14px; /* Centralizado verticalmente no input */
+        color: var(--neon-purple);
+        font-size: 1rem;
+        z-index: 2;
+    }
+    
+    /* Ajuste para textarea */
+    .input-wrapper textarea + .input-icon {
+        top: 15px; 
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 15px 12px 45px; /* Espaço para o ícone */
+        background: var(--dark-input);
+        border: 1px solid var(--glass-border);
+        border-radius: 8px;
+        color: #fff;
+        font-family: 'Poppins', sans-serif;
+        font-size: 1rem;
+        transition: all 0.3s;
+        box-sizing: border-box;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--neon-purple);
+        box-shadow: 0 0 15px rgba(212, 18, 212, 0.2);
+        background: rgba(20, 15, 45, 0.9);
+    }
+
+    /* Select customizado (seta) */
+    select.form-control {
+        appearance: none;
+        cursor: pointer;
+    }
+    .select-arrow {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        pointer-events: none;
+    }
+
+    /* Textarea */
+    textarea.form-control {
+        min-height: 150px;
+        resize: vertical;
+        line-height: 1.6;
+    }
+
+    /* Botão de Enviar */
+    .btn-submit {
+        width: 100%;
+        background: linear-gradient(45deg, #7b2cbf, var(--neon-purple));
+        color: #fff;
+        border: none;
+        padding: 15px;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(212, 18, 212, 0.5);
+    }
+
+    /* Mensagens de Erro */
+    .error-message {
+        color: var(--danger);
+        font-size: 0.85rem;
+        margin-top: 5px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .error-message::before {
+        content: '\f06a'; /* fa-circle-exclamation */
+        font-family: 'Font Awesome 6 Free';
+        font-weight: 900;
+    }
+
+    /* Flash Messages */
+    .flash-container { margin-bottom: 20px; text-align: center; }
+    .flash { padding: 15px; border-radius: 8px; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="page-container">
+    
     <div class="page-header">
         <h1><i class="fa-solid fa-circle-question"></i> {{ title }}</h1>
-        <p>Preencha os detalhes abaixo. Sua dúvida será enviada para o Discord para que outros possam ajudar.</p>
-        {# Link para voltar para a lista de dúvidas #}
-        <a href="{{ url_for('listar_duvidas') }}" class="btn-clear-duvida" style="margin-top: 15px; display: inline-block; color:white;"> &larr; Ver Dúvidas Enviadas</a>
+        <p>Descreva sua dúvida para enviarmos ao Discord e receber ajuda.</p>
+        <a href="{{ url_for('listar_duvidas') }}" class="btn-back"> 
+            <i class="fa-solid fa-arrow-left"></i> Voltar para lista
+        </a>
     </div>
 
-    {# Exibe mensagens flash, se houver #}
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-            <div class="flash-container" style="margin-bottom: 20px;">
+            <div class="flash-container">
                 {% for category, message in messages %}
                     <div class="flash {{ category }}">{{ message }}</div>
                 {% endfor %}
@@ -26,17 +207,16 @@
         {% endif %}
     {% endwith %}
 
-    {# Reutiliza o estilo do formulário de adicionar guia/log time ou cria um novo #}
-    <div class="log-time-form"> 
-        <form method="POST" action=""> {# Action vazio envia para a mesma URL #}
-            {{ form.hidden_tag() }} {# Proteção CSRF #}
-            
+    <div class="form-card">
+        <form method="POST" action=""> 
+            {{ form.hidden_tag() }} 
+             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <div class="form-group">
                 {{ form.titulo.label(class="form-label") }}
-                 <div class="input-with-icon"> {# Adiciona wrapper para ícone se quiser #}
-                     <i class="fa-solid fa-heading"></i> {# Ícone exemplo #}
-                    {{ form.titulo(class="form-control", placeholder="Ex: Como configurar email no sistema X?") }}
-                 </div>
+                <div class="input-wrapper">
+                     <i class="fa-solid fa-heading input-icon"></i>
+                     {{ form.titulo(class="form-control", placeholder="Ex: Como configurar email no sistema X?") }}
+                </div>
                 {% if form.titulo.errors %}
                     {% for error in form.titulo.errors %}
                         <div class="error-message">{{ error }}</div>
@@ -46,9 +226,10 @@
             
             <div class="form-group">
                 {{ form.categoria.label(class="form-label") }}
-                <div class="input-with-icon"> {# Adiciona wrapper para ícone se quiser #}
-                     <i class="fa-solid fa-tags"></i> {# Ícone exemplo #}
-                     {{ form.categoria(class="form-control") }} {# O WTForms gera o <select> com as opções #}
+                <div class="input-wrapper">
+                     <i class="fa-solid fa-tag input-icon"></i>
+                     {{ form.categoria(class="form-control") }}
+                     <i class="fa-solid fa-chevron-down select-arrow"></i>
                 </div>
                 {% if form.categoria.errors %}
                     {% for error in form.categoria.errors %}
@@ -59,10 +240,10 @@
 
             <div class="form-group">
                 {{ form.descricao.label(class="form-label") }}
-                 <div class="input-with-icon"> {# Adiciona wrapper para ícone se quiser #}
-                     <i class="fa-solid fa-paragraph" style="align-self: flex-start; margin-top: 14px;"></i> {# Ícone exemplo alinhado ao topo #}
-                    {{ form.descricao(class="form-control", rows=8, placeholder="Descreva o problema ou a pergunta com o máximo de detalhes possível...") }}
-                 </div>
+                <div class="input-wrapper">
+                     <i class="fa-solid fa-align-left input-icon"></i>
+                     {{ form.descricao(class="form-control", rows=6, placeholder="Descreva o problema ou a pergunta com o máximo de detalhes possível...") }}
+                </div>
                 {% if form.descricao.errors %}
                      {% for error in form.descricao.errors %}
                        <div class="error-message">{{ error }}</div>
@@ -70,9 +251,10 @@
                 {% endif %}
             </div>
             
-            {# Botão de envio #}
-            <div class="form-group form-submit-group">
-                 {{ form.submit(class="btn btn-primary btn-submit-duvida") }} {# Adiciona classe específica se precisar estilizar #}
+            <div class="form-group" style="margin-bottom: 0;">
+                 <button type="submit" class="btn-submit">
+                     <i class="fa-solid fa-paper-plane"></i> Enviar Dúvida
+                 </button>
             </div>
         </form>
     </div>
@@ -80,6 +262,5 @@
 {% endblock %}
 
 {% block scripts %}
-{# Adicione aqui scripts específicos se precisar, como confirmação antes de enviar #}
 {{ super() }}
 {% endblock %}

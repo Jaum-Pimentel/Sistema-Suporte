@@ -2,11 +2,314 @@
 
 {% block title %}{{ title }}{% endblock %}
 
+{% block head_extra %}
+<style>
+    /* --- TEMA DARK NEON PARA LEMBRETES --- */
+    :root {
+        --glass-bg: rgba(30, 33, 48, 0.6);
+        --glass-border: rgba(255, 255, 255, 0.08);
+        --neon-purple: #d412d4;
+        --neon-blue: #4cc9f0;
+        --text-main: #e0e0e0;
+        --text-muted: #a0a0a0;
+        --danger: #ff4d4d;
+    }
+
+    /* Ocupação TOTAL da tela */
+    .content-padding {
+        width: 100%;      
+        max-width: 99%;  
+        margin: 0 auto;
+        padding: 20px 30px;
+        box-sizing: border-box;
+    }
+
+    /* Cabeçalho e Ações */
+    .page-header-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .page-title h1 {
+        font-size: 2rem;
+        color: #fff;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-shadow: 0 0 10px rgba(212, 18, 212, 0.3);
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        flex-grow: 1;
+        justify-content: flex-end;
+    }
+
+    .search-box {
+        position: relative;
+        max-width: 400px; 
+        width: 100%;
+    }
+    .search-box input {
+        width: 100%;
+        padding: 12px 15px 12px 45px;
+        border-radius: 50px;
+        border: 1px solid var(--glass-border);
+        background: rgba(0, 0, 0, 0.3);
+        color: #fff;
+        outline: none;
+        transition: border-color 0.3s;
+    }
+    .search-box input:focus { border-color: var(--neon-purple); }
+    .search-box i {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+    }
+
+    .config-btn {
+        background: linear-gradient(45deg, #7b2cbf, var(--neon-purple));
+        color: #fff;
+        padding: 10px 25px;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(123, 44, 191, 0.4);
+        transition: transform 0.2s;
+        white-space: nowrap;
+    }
+    .config-btn:hover { transform: translateY(-2px); color: #fff; }
+
+    .reminders-section { margin-bottom: 50px; }
+    
+    .section-heading {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+        border-bottom: 1px solid var(--glass-border);
+        padding-bottom: 10px;
+    }
+    .section-heading h2 {
+        font-size: 1.4rem;
+        color: var(--neon-blue);
+        margin: 0;
+    }
+    
+    /* Grid Fixo de 3 Colunas */
+    .reminder-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr; 
+        gap: 20px; 
+    }
+
+    @media (max-width: 1200px) { .reminder-list { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 768px) { .reminder-list { grid-template-columns: 1fr; } }
+
+    /* Estilo do Card */
+    .reminder-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        padding: 20px;
+        padding-bottom: 60px; 
+        position: relative; 
+        transition: transform 0.3s, border-color 0.3s;
+        display: flex;
+        flex-direction: column;
+        min-height: 180px; 
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .reminder-card:hover {
+        transform: translateY(-5px);
+        border-color: rgba(212, 18, 212, 0.4);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+
+    /* Header do Card */
+    .card-header-flex {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 15px;
+        padding-bottom: 12px;
+        border-bottom: 1px dashed var(--glass-border);
+        padding-right: 40px; 
+    }
+    .type-icon {
+        width: 40px; height: 40px;
+        border-radius: 10px;
+        background: rgba(255,255,255,0.05);
+        display: flex; align-items: center; justify-content: center;
+        color: var(--neon-purple);
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+    .type-text {
+        font-weight: 600;
+        color: #fff;
+        font-size: 1rem;
+        line-height: 1.2;
+        word-break: break-word;
+    }
+
+    /* Posicionamento Absoluto dos Botões */
+    .icon-btn {
+        background: rgba(0,0,0,0.4); 
+        border: 1px solid var(--glass-border);
+        color: var(--text-muted);
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .icon-btn:hover {
+        background: rgba(255,255,255,0.1);
+        color: #fff;
+        border-color: #fff;
+    }
+    
+    /* Deletar: Topo Direito */
+    .top-right-action {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        z-index: 5;
+    }
+    .icon-btn.delete:hover { color: var(--danger); border-color: var(--danger); }
+
+    /* Duplicar: Canto Inferior Direito */
+    .bottom-right-action {
+        position: absolute;
+        bottom: 15px;
+        right: 15px;
+        z-index: 5;
+    }
+    .icon-btn.duplicate:hover { color: var(--neon-blue); border-color: var(--neon-blue); }
+
+    .reminder-info { flex-grow: 1; }
+    .reminder-info p {
+        margin: 6px 0;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        line-height: 1.5;
+    }
+    
+    .reminder-link {
+        display: inline-block;
+        margin-top: 8px;
+        padding: 6px 12px;
+        background: rgba(76, 201, 240, 0.1);
+        color: var(--neon-blue);
+        text-decoration: none;
+        font-weight: 500;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        transition: background 0.2s;
+    }
+    .reminder-link:hover { background: rgba(76, 201, 240, 0.2); }
+
+    .status-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+    .status-success { background: rgba(40, 167, 69, 0.2); color: #28a745; border: 1px solid #28a745; }
+    .status-error { background: rgba(220, 53, 69, 0.2); color: #dc3545; border: 1px solid #dc3545; }
+
+    .menu-tooltip { position: relative; cursor: help; color: var(--text-muted); }
+    .menu-tooltip:hover .tooltip-icon { color: #fff; }
+    .tooltip-content {
+        visibility: hidden; opacity: 0;
+        width: 300px;
+        background-color: rgba(15, 15, 25, 0.98);
+        color: #fff;
+        text-align: left;
+        border-radius: 8px;
+        padding: 12px;
+        position: absolute;
+        z-index: 10;
+        bottom: 135%; left: 50%; transform: translateX(-50%);
+        transition: opacity 0.3s;
+        font-size: 0.85rem;
+        border: 1px solid var(--neon-blue);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    }
+    .menu-tooltip:hover .tooltip-content { visibility: visible; opacity: 1; }
+
+    .placeholder-text {
+        color: var(--text-muted);
+        font-style: italic;
+        text-align: center;
+        padding: 20px;
+        background: rgba(255,255,255,0.03);
+        border-radius: 10px;
+    }
+
+    .modal {
+        position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%;
+        background-color: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center;
+    }
+    .modal-content {
+        background-color: #1f2129;
+        border: 1px solid var(--glass-border);
+        padding: 30px;
+        border-radius: 16px;
+        width: 90%; max-width: 450px;
+        box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        color: #fff;
+    }
+    .close-btn { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+    .close-btn:hover { color: #fff; }
+    .modal h2 { margin-top: 0; color: var(--neon-purple); }
+    
+    .btn-primary { background: var(--neon-purple); color: white; border:none; padding: 10px 20px; border-radius: 6px; cursor: pointer; }
+    .btn-secondary { background: transparent; border: 1px solid #aaa; color: #aaa; padding: 10px 20px; border-radius: 6px; cursor: pointer; margin-right: 10px; }
+    .btn-secondary:hover { color: #fff; border-color: #fff; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="content-padding">
-    <div class="fila-header">
-        <h1>{{ title }}</h1>
-        <a href="{{ url_for('create_reminder') }}" class="config-btn">Agendar Lembrete</a>
+    
+    <div class="page-header-container">
+        <div class="page-title">
+            <h1><i class="fa-regular fa-bell"></i> {{ title }}</h1>
+        </div>
+        
+        <div class="header-actions">
+            <div class="search-box">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" id="filterInput" placeholder="Filtrar por nome, descrição...">
+            </div>
+            
+            <a href="{{ url_for('create_reminder') }}" class="config-btn">
+                <i class="fa-solid fa-plus"></i> Novo Lembrete
+            </a>
+        </div>
     </div>
 
     {% include 'includes/_flash_messages.html' %}
@@ -14,125 +317,190 @@
     <div id="duplicateModal" class="modal" style="display: none;">
         <div class="modal-content">
             <span class="close-btn" id="closeDuplicateModal">&times;</span>
-            <h2>Reagendar Lembrete</h2>
-            <p>Selecione a nova data e hora para este lembrete.</p>
+            <h2><i class="fa-solid fa-clone"></i> Reagendar</h2>
+            <p>Escolha uma nova data para copiar este lembrete.</p>
             
             <form id="duplicateForm" method="POST" action="">
-                <div class="form-group" style="margin-top: 20px;">
-                    <label for="new_datetime" class="form-label">Nova Data e Hora:</label>
-                    <input type="datetime-local" id="new_datetime" name="new_datetime" class="form-control" required>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+                <div class="form-group" style="margin-top: 20px; margin-bottom: 20px;">
+                    <label for="new_datetime" class="form-label" style="display:block; margin-bottom:8px; color:#ccc;">Nova Data e Hora:</label>
+                    <input type="datetime-local" id="new_datetime" name="new_datetime" class="form-control" style="width:100%; padding:10px; border-radius:5px; border:1px solid #444; background:#111; color:#fff; box-sizing: border-box;" required>
                 </div>
                 
-                <div class="modal-actions" style="margin-top: 20px;">
+                <div class="modal-actions" style="text-align: right;">
                     <button type="button" id="cancelDuplicateBtn" class="btn btn-secondary">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Salvar Cópia</button>
                 </div>
             </form>
         </div>
     </div>
+
     <div class="reminders-section">
-        
-        <h2 class="section-title-with-tooltip">
-            <span><i class="fa-solid fa-hourglass-half" style="margin-right: 10px; font-size: 0.9em;"></i>Próximos Lembretes</span>
-            <div class="menu-tooltip" style="margin-left: 10px; position: relative; top: -2px;">
+        <div class="section-heading">
+            <h2><i class="fa-solid fa-hourglass-half"></i> Próximos Lembretes</h2>
+            
+            <div class="menu-tooltip" style="margin-left: 10px;">
                 <i class="fa-solid fa-circle-info tooltip-icon"></i>
-                <span class="tooltip-content" style="width: 600px; left: 70%; white-space: normal;">
-                    Estes lembretes ainda não foram enviados. O bot irá te notificar no Discord na data e hora agendada.
+                <span class="tooltip-content">
+                    O bot enviará uma notificação no Discord na data agendada.
                 </span>
             </div>
-        </h2>
+        </div>
+
         {% if upcoming %}
-            <ul class="reminder-list">
+            <ul class="reminder-list" id="upcomingList">
             {% for rem in upcoming %}
                 <li class="reminder-card">
-                    <form method="POST" action="{{ url_for('delete_reminder', reminder_id=rem.id) }}" class="delete-reminder-form">
-                        <button type="submit" class="delete-btn" title="Remover Lembrete">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </button>
-                    </form>
-
-                    <button type="button" class="action-btn duplicate-btn" title="Duplicar/Reagendar"
-                            data-reminder-id="{{ rem.id }}">
-                        <i class="fa-solid fa-clone"></i>
-                    </button>
                     
-                    <div class="reminder-card-content">
-                        <strong>Tipo:</strong> {{ rem.reminder_type }} <br>
-                        <strong>Data:</strong> {{ rem.reminder_datetime.strftime('%d/%m/%Y às %H:%M') }} <br>
+                    <div class="top-right-action">
+                        <form method="POST" action="{{ url_for('delete_reminder', reminder_id=rem.id) }}" class="delete-reminder-form">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            
+                            <button type="submit" class="icon-btn delete" title="Remover">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="card-header-flex">
+                        <div class="type-icon">
+                            {% if 'proativo' in rem.reminder_type|lower %}<i class="fa-solid fa-paper-plane"></i>
+                            {% elif 'ticket' in rem.reminder_type|lower %}<i class="fa-solid fa-ticket"></i>
+                            {% elif 'comportamento' in rem.reminder_type|lower %}<i class="fa-solid fa-user-check"></i>
+                            {% else %}<i class="fa-solid fa-bell"></i>{% endif %}
+                        </div>
+                        <div class="type-text">{{ rem.reminder_type }}</div>
+                    </div>
+
+                    <div class="reminder-info">
+                        <p style="font-size: 1.1rem; color: #fff; margin-bottom: 10px;">
+                            <i class="fa-regular fa-calendar" style="color: #4cc9f0;"></i> 
+                            <strong>{{ rem.reminder_datetime.strftime('%d/%m/%Y') }}</strong> às {{ rem.reminder_datetime.strftime('%H:%M') }}
+                        </p>
+                        
                         {% if rem.description %}
-                            <strong>Descrição:</strong> {{ rem.description }} <br>
+                            <p style="color: #ddd;">{{ rem.description }}</p>
                         {% endif %}
+                        
                         {% if rem.link %}
-                            <strong>Link:</strong> <a href="{{ rem.link }}" target="_blank" class="reminder-link">Acessar</a>
+                            <a href="{{ rem.link }}" target="_blank" class="reminder-link">
+                                <i class="fa-solid fa-external-link-alt"></i> Acessar Link
+                            </a>
                         {% endif %}
+                    </div>
+
+                    <div class="bottom-right-action">
+                        <button type="button" class="icon-btn duplicate duplicate-btn" title="Duplicar/Reagendar" data-reminder-id="{{ rem.id }}">
+                            <i class="fa-solid fa-clone"></i>
+                        </button>
                     </div>
                 </li>
             {% endfor %}
             </ul>
         {% else %}
-            <p class="placeholder-text">Nenhum lembrete futuro agendado.</p>
+            <div class="placeholder-text">
+                <i class="fa-regular fa-calendar-check" style="font-size: 2rem; display: block; margin-bottom: 10px;"></i>
+                Tudo limpo! Nenhum lembrete agendado.
+            </div>
         {% endif %}
     </div>
 
     <div class="reminders-section">
-        <h2>Lembretes Passados</h2>
-        {% if past %}
-            <ul class="reminder-list past">
-            {% for rem in past %}
-                <li class="reminder-card">
-                    <form method="POST" action="{{ url_for('delete_reminder', reminder_id=rem.id) }}" class="delete-reminder-form">
-                        <button type="submit" class="delete-btn" title="Remover Lembrete">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </button>
-                    </form>
-                    
-                    <button type="button" class="action-btn duplicate-btn" title="Duplicar/Reagendar"
-                            data-reminder-id="{{ rem.id }}">
-                        <i class="fa-solid fa-clone"></i>
-                    </button>
+        <div class="section-heading">
+            <h2 style="color: #a0a0a0;"><i class="fa-solid fa-history"></i> Histórico</h2>
+        </div>
 
-                    <div class="reminder-card-content">
-                        <strong>Tipo:</strong> {{ rem.reminder_type }} <br>
-                        <strong>Data:</strong> {{ rem.reminder_datetime.strftime('%d/%m/%Y às %H:%M') }} <br>
+        {% if past %}
+            <ul class="reminder-list past" id="pastList">
+            {% for rem in past %}
+                <li class="reminder-card" style="opacity: 0.75; border-color: rgba(255,255,255,0.05); background: rgba(20,20,25,0.5);">
+                    
+                    <div class="top-right-action">
+                        <form method="POST" action="{{ url_for('delete_reminder', reminder_id=rem.id) }}" class="delete-reminder-form">
+                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                             
+                            <button type="submit" class="icon-btn delete" title="Remover">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="card-header-flex">
+                        <div class="type-icon" style="color: #888; background: rgba(255,255,255,0.05);">
+                            <i class="fa-solid fa-clock-rotate-left"></i>
+                        </div>
+                        <div class="type-text" style="color: #aaa;">{{ rem.reminder_type }}</div>
+                    </div>
+
+                    <div class="reminder-info">
                         {% if rem.notification_status %}
-                            <strong>Status:</strong> 
-                            <span style="color: {% if 'Sucesso' in rem.notification_status %}#28a745{% else %}#dc3545{% endif %}; font-weight: bold;">
+                            <div class="status-badge {% if 'Sucesso' in rem.notification_status %}status-success{% else %}status-error{% endif %}">
                                 {{ rem.notification_status }}
-                            </span> <br>
+                            </div>
                         {% endif %}
+                        
+                        <p style="color: #888;"><small>{{ rem.reminder_datetime.strftime('%d/%m/%Y às %H:%M') }}</small></p>
+                        
                         {% if rem.description %}
-                            <strong>Descrição:</strong> {{ rem.description }} <br>
+                            <p style="color: #999;">{{ rem.description }}</p>
                         {% endif %}
+
                         {% if rem.link %}
-                            <strong>Link:</strong> <a href="{{ rem.link }}" target="_blank" class="reminder-link">Acessar</a>
+                            <a href="{{ rem.link }}" target="_blank" class="reminder-link">
+                                <i class="fa-solid fa-external-link-alt"></i> Acessar Link
+                            </a>
                         {% endif %}
+                    </div>
+
+                    <div class="bottom-right-action">
+                        <button type="button" class="icon-btn duplicate duplicate-btn" title="Reagendar" data-reminder-id="{{ rem.id }}">
+                            <i class="fa-solid fa-rotate-right"></i>
+                        </button>
                     </div>
                 </li>
             {% endfor %}
             </ul>
         {% else %}
-            <p class="placeholder-text">Nenhum lembrete no histórico.</p>
+            <p class="placeholder-text">Nenhum histórico recente.</p>
         {% endif %}
     </div>
+
 </div>
 {% endblock %}
 
 {% block scripts %}
-{{ super() }} {# Mantém scripts do base.html, se houver #}
+{{ super() }}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // --- Script de Confirmação de Deleção (Seu código existente) ---
+    
+    const filterInput = document.getElementById('filterInput');
+    const allCards = document.querySelectorAll('.reminder-card');
+
+    if (filterInput) {
+        filterInput.addEventListener('keyup', function(e) {
+            const term = e.target.value.toLowerCase();
+            allCards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                if (text.includes(term)) {
+                    card.style.display = 'flex'; 
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    }
+
     const deleteForms = document.querySelectorAll('.delete-reminder-form');
     deleteForms.forEach(form => {
         form.addEventListener('submit', function(event) {
             const confirmed = confirm('Você tem certeza que deseja remover este lembrete?');
             if (!confirmed) {
-                event.preventDefault(); // Cancela o envio
+                event.preventDefault();
             }
         });
     });
 
-    // --- SCRIPT PARA MODAL DE DUPLICAÇÃO (Sem alteração) ---
     const duplicateModal = document.getElementById('duplicateModal');
     const duplicateForm = document.getElementById('duplicateForm');
     const newDatetimeInput = document.getElementById('new_datetime');
@@ -154,7 +522,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 newDatetimeInput.value = '';
             }
             if (duplicateModal) {
-                duplicateModal.style.display = 'block';
+                duplicateModal.style.display = 'flex'; 
                 if (newDatetimeInput) newDatetimeInput.focus();
             }
         });

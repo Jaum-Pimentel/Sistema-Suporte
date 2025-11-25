@@ -2,41 +2,197 @@
 
 {% block title %}{{ title }}{% endblock %}
 
+{% block head_extra %}
+<style>
+    /* --- TEMA DARK NEON PARA FORMULÁRIOS --- */
+    :root {
+        --glass-bg: rgba(30, 33, 48, 0.6);
+        --glass-border: rgba(255, 255, 255, 0.08);
+        --neon-purple: #d412d4;
+        --dark-input: rgba(15, 12, 41, 0.6);
+        --text-main: #e0e0e0;
+    }
+
+    .page-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .page-header h1 {
+        font-size: 2rem;
+        color: #fff;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .page-header p { color: #a0a0a0; margin-bottom: 30px; }
+
+    /* Card Glassmorphism */
+    .reminder-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        padding: 40px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    /* --- GRID LAYOUT --- */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr; 
+        gap: 30px; 
+    }
+
+    .full-width {
+        grid-column: 1 / -1;
+    }
+
+    /* Inputs e Labels */
+    .form-group { margin-bottom: 5px; }
+    
+    .form-label {
+        display: block;
+        color: var(--text-main);
+        margin-bottom: 8px;
+        font-weight: 500;
+        font-size: 0.95rem;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 15px;
+        background: var(--dark-input);
+        border: 1px solid var(--glass-border);
+        border-radius: 8px;
+        color: #fff;
+        font-family: 'Poppins', sans-serif;
+        font-size: 1rem;
+        transition: all 0.3s;
+        box-sizing: border-box;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: var(--neon-purple);
+        background: rgba(15, 12, 41, 0.9);
+        box-shadow: 0 0 15px rgba(212, 18, 212, 0.2);
+    }
+
+    input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+        filter: invert(1); 
+        cursor: pointer;
+    }
+
+    /* Botões */
+    .form-actions {
+        display: flex;
+        justify-content: flex-end; 
+        gap: 15px;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid var(--glass-border);
+    }
+
+    .btn-save {
+        background: linear-gradient(45deg, #7b2cbf, var(--neon-purple));
+        color: #fff;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: transform 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .btn-save:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(212, 18, 212, 0.4); }
+
+    .btn-cancel {
+        background: transparent;
+        border: 1px solid rgba(255,255,255,0.2);
+        color: #a0a0a0;
+        padding: 12px 25px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+    }
+    .btn-cancel:hover { border-color: #fff; color: #fff; }
+
+    @media (max-width: 768px) {
+        .form-grid { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="content-padding">
-    <h1>{{ title }}</h1>
+<div class="page-container">
+    
+    <div class="page-header">
+        <h1><i class="fa-regular fa-calendar-plus" style="color: #d412d4;"></i> {{ title }}</h1>
+        <p>Preencha os dados abaixo para agendar uma notificação.</p>
+    </div>
 
     {% include 'includes/_flash_messages.html' %}
 
-    <form method="POST" action="{{ url_for('create_reminder') }}" class="kanban-form">
-        <div class="form-group">
-            <label for="reminder_type">Tipo de Lembrete</label>
-            <select name="reminder_type" id="reminder_type" class="form-control" required>
-                <option value="" disabled selected>-- Selecione uma opção --</option>
-                <option value="Enviar proativo">Enviar proativo</option>
-                <option value="Analisar comportamento">Analisar comportamento</option>
-                <option value="Abrir ticket">Abrir ticket</option>
-                <option value="Outros">Outros</option>
-            </select>
-        </div>
+    <div class="reminder-card">
+        <form method="POST" action="{{ url_for('create_reminder') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            
+            <div class="form-grid">
+                
+                <div class="form-group">
+                    <label for="reminder_type" class="form-label">
+                        <i class="fa-solid fa-tag"></i> Tipo de Lembrete
+                    </label>
+                    <select name="reminder_type" id="reminder_type" class="form-control" required>
+                        <option value="" disabled selected>-- Selecione --</option>
+                        <option value="Enviar proativo">Enviar proativo</option>
+                        <option value="Analisar comportamento">Analisar comportamento</option>
+                        <option value="Abrir ticket">Abrir ticket</option>
+                        <option value="Outros">Outros</option>
+                    </select>
+                </div>
 
-        <div class="form-group">
-            <label for="reminder_datetime">Data e Hora do Lembrete</label>
-            <input type="datetime-local" id="reminder_datetime" name="reminder_datetime" class="form-control" required>
-        </div>
+                <div class="form-group">
+                    <label for="reminder_datetime" class="form-label">
+                        <i class="fa-regular fa-clock"></i> Data e Hora
+                    </label>
+                    <input type="datetime-local" id="reminder_datetime" name="reminder_datetime" class="form-control" required>
+                </div>
 
-        <div class="form-group">
-            <label for="description">Descrição</label>
-            <textarea name="description" id="description" rows="3" class="form-control"></textarea>
-        </div>
+                <div class="form-group full-width">
+                    <label for="link" class="form-label">
+                        <i class="fa-solid fa-link"></i> Link (Opcional)
+                    </label>
+                    <input type="url" name="link" id="link" class="form-control" placeholder="Cole o link aqui (Ex: https://auvo.com...)">
+                </div>
 
-        <div class="form-group">
-            <label for="link">Link (Opcional)</label>
-            <input type="url" name="link" id="link" class="form-control" placeholder="https://...">
-        </div>
+                <div class="form-group full-width">
+                    <label for="description" class="form-label">
+                        <i class="fa-solid fa-align-left"></i> Descrição Detalhada
+                    </label>
+                    <textarea name="description" id="description" rows="4" class="form-control" placeholder="Descreva o motivo do lembrete..."></textarea>
+                </div>
 
-        <button type="submit" class="atender-btn">Agendar</button>
-        <a href="{{ url_for('list_reminders') }}" class="cancel-btn">Cancelar</a>
-    </form>
+            </div>
+
+            <div class="form-actions">
+                <a href="{{ url_for('list_reminders') }}" class="btn-cancel">Cancelar</a>
+                <button type="submit" class="btn-save">
+                    <i class="fa-solid fa-check"></i> Agendar Lembrete
+                </button>
+            </div>
+
+        </form>
+    </div>
 </div>
 {% endblock %}

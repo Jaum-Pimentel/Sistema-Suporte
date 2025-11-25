@@ -4,53 +4,265 @@
 
 {% block head_extra %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
-{% endblock %}
+<style>
+    /* --- TEMA DARK NEON (EDITAR GUIA) --- */
+    :root {
+        --glass-bg: rgba(30, 33, 48, 0.6);
+        --glass-border: rgba(255, 255, 255, 0.08);
+        --neon-purple: #d412d4;
+        --neon-blue: #4cc9f0;
+        --text-main: #e0e0e0;
+        --text-muted: #a0a0a0;
+        --danger: #ff4d4d;
+        --dark-input: rgba(15, 12, 41, 0.6);
+    }
 
+    /* Layout Full Width */
+    .page-container {
+        width: 100%;
+        max-width: 99%;
+        margin: 0 auto;
+        padding: 20px 30px;
+        box-sizing: border-box;
+    }
+
+    /* Cabeçalho */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        border-bottom: 1px solid var(--glass-border);
+        padding-bottom: 15px;
+    }
+
+    .page-header h1 {
+        font-size: 2rem;
+        color: #fff;
+        margin: 0;
+        text-shadow: 0 0 10px rgba(212, 18, 212, 0.4);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* Botão Voltar */
+    .btn-back {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-muted);
+        padding: 10px 20px;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 500;
+        border: 1px solid var(--glass-border);
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.9rem;
+    }
+    .btn-back:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: #fff; }
+
+    /* --- CARD DO FORMULÁRIO --- */
+    .edit-guia-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        padding: 40px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+        position: relative;
+        overflow: hidden;
+        max-width: 1200px; /* Limita largura para não ficar muito esticado */
+        margin: 0 auto;
+    }
+
+    /* Linha decorativa no topo */
+    .edit-guia-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 3px;
+        background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+    }
+
+    /* Título da Seção de Edição */
+    .section-title {
+        color: var(--neon-purple);
+        margin-top: 0;
+        margin-bottom: 25px;
+        font-size: 1.3rem;
+        display: flex; align-items: center; gap: 10px;
+    }
+
+    /* Inputs e Labels */
+    .form-group { margin-bottom: 25px; }
+
+    .form-label {
+        display: block;
+        color: #fff;
+        margin-bottom: 8px;
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 15px;
+        background: var(--dark-input);
+        border: 1px solid var(--glass-border);
+        border-radius: 8px;
+        color: #fff;
+        font-family: 'Poppins', sans-serif;
+        font-size: 1rem;
+        transition: all 0.3s;
+        box-sizing: border-box;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--neon-purple);
+        box-shadow: 0 0 15px rgba(212, 18, 212, 0.2);
+        background: rgba(20, 15, 45, 0.9);
+    }
+
+    /* Textarea Específico */
+    textarea.form-control {
+        line-height: 1.6;
+        resize: vertical;
+        min-height: 400px; /* Altura maior para edição de texto longo */
+        font-family: 'Consolas', 'Monaco', monospace; /* Fonte monoespaçada ajuda a editar markdown */
+        font-size: 0.95rem;
+    }
+
+    /* Botão de Upload de Imagem */
+    .upload-section {
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .upload-btn {
+        background: rgba(76, 201, 240, 0.1);
+        border: 1px solid rgba(76, 201, 240, 0.3);
+        color: var(--neon-blue);
+        padding: 8px 15px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    .upload-btn:hover {
+        background: rgba(76, 201, 240, 0.2);
+        color: #fff;
+        box-shadow: 0 0 10px rgba(76, 201, 240, 0.2);
+    }
+
+    /* Botão Salvar */
+    .form-submit-group {
+        margin-top: 30px;
+        text-align: right;
+        border-top: 1px solid var(--glass-border);
+        padding-top: 20px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(45deg, #7b2cbf, var(--neon-purple));
+        color: #fff;
+        border: none;
+        padding: 12px 35px;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(212, 18, 212, 0.5);
+    }
+
+    /* Mensagens de Erro */
+    .error-message { color: var(--danger); font-size: 0.85rem; margin-top: 5px; display: flex; align-items: center; gap: 5px; }
+    
+    /* Flash Messages */
+    .alert { padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
+
+    @media (max-width: 768px) {
+        .page-header { flex-direction: column; align-items: flex-start; gap: 15px; }
+        .form-submit-group { text-align: center; }
+        .btn-primary { width: 100%; justify-content: center; }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="page-container">
+    
     <div class="page-header">
-        <h1>{{ title }}</h1>
-        <a href="{{ url_for('listar_guias') }}" class="btn-clear" style="margin-left: auto;"> &larr; Voltar para Guias</a>
+        <h1><i class="fa-solid fa-pen-to-square"></i> {{ title }}</h1>
+        <a href="{{ url_for('listar_guias') }}" class="btn-back"> 
+            <i class="fa-solid fa-arrow-left"></i> Voltar para Guias
+        </a>
     </div>
 
-     {% with messages = get_flashed_messages(with_categories=true) %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}{% for category, message in messages %}
         <div class="alert alert-{{ category }}">{{ message }}</div>
         {% endfor %}{% endif %}
     {% endwith %}
 
-    <div class="log-time-form" style="margin-top: 2rem;"> {# Usando a mesma classe de estilo do form de adicionar #}
-        <form method="POST" action=""> {# Action vazio posta para a mesma URL #}
-            {{ form.hidden_tag() }}
+    <div class="edit-guia-card">
+        <h2 class="section-title"><i class="fa-solid fa-file-pen"></i> Editar Conteúdo</h2>
+        
+        <form method="POST" action=""> 
+            {{ form.hidden_tag() }} 
+             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <div class="form-group">
                 {{ form.titulo.label(class="form-label") }}
-                {{ form.titulo(class="form-control") }}
-                {% if form.titulo.errors %}<div class="error-message">{{ form.titulo.errors[0] }}</div>{% endif %}
+                {{ form.titulo(class="form-control", placeholder="Título do guia") }}
+                {% if form.titulo.errors %}
+                    <div class="error-message">{{ form.titulo.errors[0] }}</div>
+                {% endif %}
             </div>
+            
             <div class="form-group">
                 {{ form.conteudo.label(class="form-label") }}
-
-                <div style="margin-bottom: 10px;">
-                    <button type="button" id="insert-image-btn" class="action-btn" style="background-color: #555;">
+                
+                <div class="upload-section">
+                    <button type="button" id="insert-image-btn" class="upload-btn">
                         <i class="fa-solid fa-image"></i> Inserir Imagem
                     </button>
                     <input type="file" id="image-upload-input" accept="image/*" style="display: none;">
-                    <span id="upload-status" style="margin-left: 10px; color: #9ca3af; font-style: italic;"></span>
+                    <span id="upload-status" style="color: var(--neon-blue); font-size: 0.9rem; font-style: italic;"></span>
                 </div>
-                {{ form.conteudo(id="conteudo-textarea", class="form-control", rows=15) }} {# Aumentei rows para edição #}
-                {% if form.conteudo.errors %}<div class="error-message">{{ form.conteudo.errors[0] }}</div>{% endif %}
+
+                {{ form.conteudo(id="conteudo-textarea", class="form-control", rows=20, placeholder="Conteúdo do guia em Markdown...") }}
+                
+                {% if form.conteudo.errors %}
+                    <div class="error-message">{{ form.conteudo.errors[0] }}</div>
+                {% endif %}
             </div>
-            {{ form.submit(class="btn btn-primary", value="Salvar Alterações") }} {# Muda o texto do botão #}
+            
+            <div class="form-submit-group">
+                {{ form.submit(class="btn-primary", value="Salvar Alterações") }}
+            </div>
         </form>
     </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
-{{ super() }} {# Mantém scripts do base.html #}
+{{ super() }} 
 <script>
-// === SCRIPT PARA UPLOAD E INSERÇÃO DE IMAGEM (Idêntico ao de guias.html) ===
+// === SCRIPT PARA UPLOAD E INSERÇÃO DE IMAGEM ===
 document.addEventListener('DOMContentLoaded', function() {
     const insertImageBtn = document.getElementById('insert-image-btn');
     const imageUploadInput = document.getElementById('image-upload-input');
@@ -58,27 +270,24 @@ document.addEventListener('DOMContentLoaded', function() {
     const uploadStatus = document.getElementById('upload-status');
 
     if (insertImageBtn && imageUploadInput && conteudoTextarea && uploadStatus) {
-        // 1. Clicar no botão "Inserir Imagem" aciona o input de arquivo escondido
+        
         insertImageBtn.addEventListener('click', () => {
             imageUploadInput.click();
         });
 
-        // 2. Quando um arquivo é selecionado no input escondido
         imageUploadInput.addEventListener('change', (event) => {
             const file = event.target.files[0];
-            if (!file) { return; }
+            if (!file) return;
 
             uploadStatus.textContent = 'Enviando imagem...';
             insertImageBtn.disabled = true;
+            
             const formData = new FormData();
             formData.append('file', file);
 
             fetch("{{ url_for('upload_guia_imagem') }}", {
                 method: 'POST',
-                body: formData,
-                // headers: { // Descomente se precisar de CSRF
-                //    'X-CSRFToken': document.querySelector('input[name="csrf_token"]')?.value || '' 
-                // }
+                body: formData
             })
             .then(response => {
                 if (!response.ok) {
@@ -88,16 +297,20 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(data => {
                 if (data.imageUrl) {
-                    const imageUrl = data.imageUrl;
-                    const markdownText = `\n![imagem](${imageUrl})\n`;
+                    const markdownText = `\n![imagem](${data.imageUrl})\n`;
                     const cursorPos = conteudoTextarea.selectionStart;
                     const textBefore = conteudoTextarea.value.substring(0, cursorPos);
                     const textAfter = conteudoTextarea.value.substring(cursorPos);
+                    
                     conteudoTextarea.value = textBefore + markdownText + textAfter;
-                    conteudoTextarea.selectionStart = cursorPos + markdownText.length;
-                    conteudoTextarea.selectionEnd = cursorPos + markdownText.length;
+                    
+                    // Reposiciona o cursor após a imagem inserida
+                    const newCursorPos = cursorPos + markdownText.length;
+                    conteudoTextarea.selectionStart = newCursorPos;
+                    conteudoTextarea.selectionEnd = newCursorPos;
                     conteudoTextarea.focus();
-                    uploadStatus.textContent = 'Imagem inserida!';
+
+                    uploadStatus.textContent = 'Imagem inserida com sucesso!';
                     setTimeout(() => { uploadStatus.textContent = ''; }, 3000);
                 } else {
                     throw new Error(data.error || 'Resposta inválida do servidor.');
@@ -106,6 +319,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => {
                 console.error('Erro no upload:', error);
                 uploadStatus.textContent = `Erro: ${error.message}`;
+                uploadStatus.style.color = 'var(--danger)';
             })
             .finally(() => {
                 event.target.value = null; 

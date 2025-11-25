@@ -40,6 +40,8 @@ BOT_RESOLVED_NOTIFICATION_URL = "http://127.0.0.1:8080/notify-resolved"
 DISCORD_BOT_URL = "http://127.0.0.1:5001/notify" 
 QUERY_BOT_URL = "http://127.0.0.1:5003"
 GENERAL_NOTIFICATION_BOT_URL = "http://127.0.0.1:5005/notify" # Bot para Guias, Links, etc.
+app.config['SECRET_KEY'] = 'sua_chave_secreta_aqui' # Você já deve ter isso
+HUBSPOT_BOT_URL = "http://127.0.0.1:5015/notify_hubspot" # Nova porta para este bot
 # --- Configuração para Dúvidas ---
 DUVIDAS_BOT_URL = os.getenv("DUVIDAS_BOT_URL", "http://127.0.0.1:5006/criar-topico-duvida") # Ex: porta 5006
 API_SECRET_KEY = os.getenv("FLASK_API_SECRET", "mude-para-algo-bem-secreto-e-dificil") # Mude isso! Use variável de ambiente!
@@ -57,7 +59,7 @@ app.config['MAIL_PASSWORD'] = 'vvrr gppy likp iqgz'       # <-- SUA SENHA DE APP
 mail = Mail(app)
 # --- FIM DA CONFIGURAÇÃO ---
 
-
+csrf = CSRFProtect(app)
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 login_manager = LoginManager(app)
@@ -300,7 +302,22 @@ class EventLog(db.Model):
     
     def __repr__(self):
         return f'<EventLog {self.id} por {self.user_id} em {self.timestamp}>'
-# --- FIM DOS NOVOS MODELOS ---    
+# --- FIM DOS NOVOS MODELOS ---  
+
+# --- MODELO DE SOLICITAÇÕES HUBSPOT ---
+class SolicitacaoHubspot(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    chat_link = db.Column(db.String(500), nullable=False)
+    tipo_solicitacao = db.Column(db.String(50), nullable=False) # Upgrade, Downgrade, Cancelamento, etc.
+    observacao = db.Column(db.Text, nullable=True)
+    status = db.Column(db.String(20), default='Pendente', nullable=False) # Pendente, Concluido
+    hubspot_link = db.Column(db.String(500), nullable=True) # Só preenchido ao concluir
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
+    
+    user = db.relationship('User', backref='solicitacoes_hubspot')
+
 # --- DECORADOR DE ADMIN ---
 def admin_required(f):
     @wraps(f)
@@ -341,7 +358,39 @@ class Resposta(db.Model):
         return f'<Resposta {self.id} para Dúvida {self.duvida_id}>'
 # --- Fim Modelos de Dúvidas ---
 
+
+
 # ------------------- 3. FORMULÁRIOS (Flask-WTF) -------------------
+
+
+# Atualize as opções no HubspotRequestForm
+class HubspotRequestForm(FlaskForm):
+    chat_link = StringField('Link do Chat', validators=[DataRequired(), Length(max=500)])
+    tipo = SelectField('Tipo de Solicitação', choices=[
+        ('Upgrade', 'Upgrade'),
+        ('Downgrade', 'Downgrade'),
+        ('Cancelamento', 'Cancelamento'),
+        ('Treinamento Web', 'Treinamento Web'),
+        ('Treinamento App', 'Treinamento App'),
+        ('Treinamento Financeiro', 'Treinamento Financeiro'),
+        ('Treinamento PMOC', 'Treinamento PMOC'),
+        ('Reajuste', 'Reajuste'),
+        ('Outros', 'Outros')
+    ], validators=[DataRequired()])
+    observacao = TextAreaField('Observação (Opcional)')
+    submit = SubmitField('Criar Solicitação')
+
+# Atualize o formulário de conclusão para incluir o responsável
+class HubspotConcluirForm(FlaskForm):
+    hubspot_link = StringField('Link do Ticket HubSpot', validators=[DataRequired()])
+    responsavel = SelectField('Ticket atribuído para:', choices=[
+        ('Matheus Vilela', 'Matheus Vilela'),
+        ('Cauã', 'Cauã'),
+        ('Ana Vitoria', 'Ana Vitoria')
+    ], validators=[DataRequired()])
+    submit = SubmitField('Salvar e Concluir')
+
+
 # --- NOVO FORMULÁRIO DE ALTERAÇÃO DE SENHA DO GESTOR ---
 class ChangeManagerPasswordForm(FlaskForm):
     current_password = PasswordField('Senha Atual (Gestor)', 
@@ -493,11 +542,13 @@ class DuvidaForm(FlaskForm):
     submit = SubmitField('Enviar Dúvida e Criar Tópico')
 # --- Fim Formulário de Dúvidas ---
 
+
 # ------------------- 4. ROTAS / VIEWS (As Páginas) -------------------
 @app.route('/')
 @login_required
 def index():
-    return redirect(url_for('kanban_individual'))
+   
+    return redirect(url_for('fila_telefonica'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -1916,39 +1967,46 @@ def deletar_duvida(duvida_id):
 def listar_eventos():
     """Página principal de registro e visualização de eventos."""
     
-    # 1. Buscar os tipos de evento para os botões de registro
+    # 1. Buscar os tipos de evento
     tipos_de_evento = EventType.query.order_by(EventType.name).all()
     
-    # 2. Buscar os logs de eventos recentes (últimos 50)
+    # 2. Buscar logs recentes (Últimos 50)
     logs_recentes = EventLog.query.options(
-        joinedload(EventLog.user), # Carrega o usuário junto
-        joinedload(EventLog.event_type) # Carrega o tipo de evento junto
+        joinedload(EventLog.user),
+        joinedload(EventLog.event_type)
     ).order_by(EventLog.timestamp.desc()).limit(50).all()
     
-    # 3. Preparar dados para o Dashboard (Contagem de HOJE em BRT)
+    # 3. DADOS DO GRÁFICO (CORREÇÃO DE FUSO HORÁRIO - BRT)
+    # Precisamos filtrar apenas o que é "Hoje" no Brasil
     
-    # Define o início e o fim de "hoje" em Brasília (UTC-3)
     now_utc = datetime.utcnow()
-    hoje_brt = (now_utc - timedelta(hours=3)).date() # Data de hoje em BRT
+    # Converte agora para BRT para saber que dia é hoje no Brasil
+    now_brt = now_utc - timedelta(hours=3)
     
-    # Converte a data de hoje em BRT de volta para UTC para a query
-    inicio_dia_utc = datetime(hoje_brt.year, hoje_brt.month, hoje_brt.day, 3, 0, 0) # 00:00 BRT = 03:00 UTC
-    fim_dia_utc = inicio_dia_utc + timedelta(days=1)
+    # Define 00:00 de hoje no Brasil
+    inicio_dia_brt = datetime(now_brt.year, now_brt.month, now_brt.day, 0, 0, 0)
+    # Converte 00:00 BRT volta para UTC (que é +3 horas) para buscar no banco
+    inicio_dia_query_utc = inicio_dia_brt + timedelta(hours=3)
     
-    # Query que conta eventos de hoje
+    # Define o final do dia (para garantir que não pegue coisas do futuro se houver erro de relógio)
+    fim_dia_query_utc = inicio_dia_query_utc + timedelta(hours=24)
+
+    # Query filtrada pelo dia de HOJE (BRT)
     contagem_hoje = db.session.query(
         EventType.name, 
         db.func.count(EventLog.id)
     ).join(EventLog, EventType.id == EventLog.event_type_id)\
      .filter(
-        EventLog.timestamp >= inicio_dia_utc,
-        EventLog.timestamp < fim_dia_utc
-    ).group_by(EventType.name).all() # Ex: [('Errar Login', 5), ('Limpar Cache', 2)]
+        EventLog.timestamp >= inicio_dia_query_utc,
+        EventLog.timestamp < fim_dia_query_utc
+    ).group_by(EventType.name).all()
     
-    # Prepara dados para o Chart.js
+    labels = [evento[0] for evento in contagem_hoje] if contagem_hoje else []
+    counts = [evento[1] for evento in contagem_hoje] if contagem_hoje else []
+
     dashboard_data = {
-        'labels': [evento[0] for evento in contagem_hoje],
-        'counts': [evento[1] for evento in contagem_hoje]
+        'labels': labels,
+        'counts': counts
     }
 
     return render_template('eventos.html', 
@@ -1984,6 +2042,51 @@ def registrar_evento(event_type_id):
         flash(f"Erro ao registrar evento: {e}", 'danger')
         
     return redirect(url_for('listar_eventos'))
+
+# --- API PARA DADOS DO GRÁFICO (FILTROS) ---
+@app.route('/api/chart-data')
+@login_required
+def chart_data():
+    period = request.args.get('period', 'day') # Padrão é dia
+    
+    # Hora atual em UTC
+    now_utc = datetime.utcnow()
+    # Hora atual em BRT (Referência correta)
+    now_brt = now_utc - timedelta(hours=3)
+    
+    start_date_utc = None
+    
+    # Lógica de Filtro baseada no BRT
+    if period == 'day':
+        # Meia noite de hoje no Brasil
+        start_of_day_brt = datetime(now_brt.year, now_brt.month, now_brt.day, 0, 0, 0)
+        # Converte para UTC para consulta (+3h) -> 03:00 UTC
+        start_date_utc = start_of_day_brt + timedelta(hours=3)
+        
+    elif period == 'week':
+        # 7 dias atrás a partir de agora
+        start_date_utc = now_utc - timedelta(days=7)
+        
+    elif period == 'month':
+        # 30 dias atrás
+        start_date_utc = now_utc - timedelta(days=30)
+    
+    # Se for 'all', start_date_utc continua None
+
+    query = db.session.query(
+        EventType.name, 
+        db.func.count(EventLog.id)
+    ).join(EventLog, EventType.id == EventLog.event_type_id)
+
+    if start_date_utc:
+        query = query.filter(EventLog.timestamp >= start_date_utc)
+
+    results = query.group_by(EventType.name).all()
+
+    labels = [r[0] for r in results]
+    counts = [r[1] for r in results]
+
+    return jsonify({'labels': labels, 'counts': counts})
 
 # --- ROTAS DO PAINEL DE ADMINISTRAÇÃO ---
 
@@ -2385,6 +2488,98 @@ def admin_delete_query(query_id):
         flash(f"Erro ao remover a solicitação de query: {e}", "danger")
         
     return redirect(url_for('admin_dashboard'))
+
+
+# --- ROTAS DE SOLICITAÇÕES HUBSPOT ---
+# --- ROTAS DE SOLICITAÇÕES HUBSPOT ---
+
+# --- ROTAS DE SOLICITAÇÕES HUBSPOT ---
+
+@app.route('/hubspot-requests', methods=['GET', 'POST'])
+@login_required
+def listar_hubspot():
+    form = HubspotRequestForm()
+    
+    # Criar nova solicitação
+    if form.validate_on_submit():
+        nova_solic = SolicitacaoHubspot(
+            user_id=current_user.id,
+            chat_link=form.chat_link.data,
+            tipo_solicitacao=form.tipo.data,
+            observacao=form.observacao.data,
+            status='Pendente'
+        )
+        db.session.add(nova_solic)
+        db.session.commit()
+        flash('Solicitação criada! Não esqueça de abrir o ticket depois.', 'warning')
+        return redirect(url_for('listar_hubspot'))
+        
+    # Listar (Pendentes primeiro)
+    pendentes = SolicitacaoHubspot.query.filter_by(status='Pendente').order_by(SolicitacaoHubspot.created_at.desc()).all()
+    concluidos = SolicitacaoHubspot.query.filter_by(status='Concluido').order_by(SolicitacaoHubspot.updated_at.desc()).limit(20).all()
+    
+    return render_template('hubspot_requests.html', 
+                           title="Solicitações HubSpot", 
+                           form=form, 
+                           pendentes=pendentes, 
+                           concluidos=concluidos)
+
+@app.route('/hubspot-requests/deletar/<int:req_id>', methods=['POST'])
+@login_required
+def deletar_hubspot(req_id):
+    solicitacao = db.session.get(SolicitacaoHubspot, req_id)
+    if solicitacao:
+        db.session.delete(solicitacao)
+        db.session.commit()
+        flash('Registro removido.', 'success')
+    else:
+        flash('Erro ao remover: Registro não encontrado.', 'danger')
+    return redirect(url_for('listar_hubspot'))
+
+@app.route('/hubspot-requests/concluir/<int:req_id>', methods=['POST'])
+@login_required
+def concluir_hubspot(req_id):
+    # 1. Busca a solicitação no banco
+    solicitacao = db.session.get(SolicitacaoHubspot, req_id)
+    if not solicitacao:
+        flash('Solicitação não encontrada.', 'danger')
+        return redirect(url_for('listar_hubspot'))
+        
+    # 2. Pega os dados enviados pelo formulário do Modal
+    link_ticket = request.form.get('hubspot_link')
+    responsavel = request.form.get('responsavel') 
+    
+    # 3. Validação básica
+    if not link_ticket or not responsavel:
+        flash('Link e Responsável são obrigatórios.', 'danger')
+        return redirect(url_for('listar_hubspot'))
+        
+    # 4. Atualiza o Banco de Dados
+    solicitacao.hubspot_link = link_ticket
+    solicitacao.responsavel_hubspot = responsavel
+    solicitacao.status = 'Concluido'
+    solicitacao.updated_at = datetime.utcnow()
+    db.session.commit()
+    
+    # 5. Lógica do Bot (Notificar se NÃO for Upgrade)
+    if solicitacao.tipo_solicitacao != 'Upgrade':
+        try:
+            payload = {
+                'tipo': solicitacao.tipo_solicitacao,
+                'responsavel': responsavel,
+                'link_hub': link_ticket,
+                'link_chat': solicitacao.chat_link,
+                'autor': current_user.name
+            }
+            # Envia para o bot na porta 5015
+            requests.post(HUBSPOT_BOT_URL, json=payload, timeout=3)
+            flash(f'Solicitação concluída e notificação enviada para {responsavel}!', 'success')
+        except requests.exceptions.RequestException:
+            flash('Concluído, mas houve um erro ao tentar notificar o bot (ele está online?).', 'warning')
+    else:
+        flash('Solicitação de Upgrade concluída (sem notificação).', 'success')
+        
+    return redirect(url_for('listar_hubspot'))
 # --- FIM DA NOVA ROTA ---
 # ... (Mantenha suas outras rotas de admin: /admin, /admin/event/delete, /admin/fila/pular, /admin/exportar-eventos) ...
 # ------------------- 5. BLOCO DE EXECUÇÃO -------------------

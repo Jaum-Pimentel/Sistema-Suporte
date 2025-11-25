@@ -2,15 +2,296 @@
 
 {% block title %}{{ title }}{% endblock %}
 
+{% block head_extra %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+<style>
+    /* --- TEMA DARK NEON (MINHAS METAS) --- */
+    :root {
+        --glass-bg: rgba(30, 33, 48, 0.6);
+        --glass-border: rgba(255, 255, 255, 0.08);
+        --neon-purple: #d412d4;
+        --neon-blue: #4cc9f0;
+        
+        /* Cores do Semáforo Neon */
+        --neon-green: #00ff9d;
+        --neon-yellow: #ffdd00;
+        --neon-red: #ff3333;
+        
+        --text-main: #e0e0e0;
+        --text-muted: #a0a0a0;
+    }
+
+    /* Layout Full Width */
+    .page-container {
+        width: 100%;
+        max-width: 99%;
+        margin: 0 auto;
+        padding: 20px 30px;
+        box-sizing: border-box;
+    }
+
+    /* Cabeçalho */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        border-bottom: 1px solid var(--glass-border);
+        padding-bottom: 15px;
+    }
+
+    .page-header h1 {
+        font-size: 2rem;
+        color: #fff;
+        margin: 0;
+        text-shadow: 0 0 10px rgba(212, 18, 212, 0.4);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .subtitle {
+        color: var(--neon-blue);
+        font-size: 1.1rem;
+        margin-bottom: 30px;
+        font-weight: 500;
+    }
+
+    /* Botão de Ação Principal */
+    .action-btn {
+        background: linear-gradient(45deg, #7b2cbf, var(--neon-purple));
+        color: #fff;
+        padding: 12px 25px;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(123, 44, 191, 0.4);
+        transition: transform 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .action-btn:hover { transform: translateY(-2px); color: #fff; }
+
+    /* --- DASHBOARD CARD (MÉDIA) --- */
+    .report-section {
+        margin-bottom: 40px;
+        display: flex;
+        justify-content: center; 
+    }
+
+    .my-average-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        border-radius: 24px;
+        padding: 40px 60px; /* Mais espaço interno */
+        text-align: center;
+        box-shadow: 0 15px 50px rgba(0,0,0,0.5);
+        position: relative;
+        overflow: hidden;
+        min-width: 350px;
+    }
+
+    .my-average-card h2 {
+        color: #fff;
+        font-size: 1.1rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-top: 0;
+        margin-bottom: 10px;
+        opacity: 0.8;
+    }
+
+    /* --- ESTILOS DA MÉDIA (CONDICIONAL) --- */
+    .average-time {
+        font-size: 6rem; /* BEM GRANDE */
+        font-weight: 800;
+        margin: 10px 0;
+        font-family: 'Courier New', monospace;
+        line-height: 1;
+        transition: all 0.3s ease;
+    }
+
+    /* Cores e Brilhos Condicionais */
+    .status-green {
+        color: var(--neon-green);
+        text-shadow: 0 0 20px rgba(0, 255, 157, 0.4), 0 0 40px rgba(0, 255, 157, 0.2);
+    }
+    
+    .status-yellow {
+        color: var(--neon-yellow);
+        text-shadow: 0 0 20px rgba(255, 221, 0, 0.4), 0 0 40px rgba(255, 221, 0, 0.2);
+    }
+    
+    .status-red {
+        color: var(--neon-red);
+        text-shadow: 0 0 20px rgba(255, 51, 51, 0.5), 0 0 50px rgba(255, 51, 51, 0.3);
+        animation: pulseRed 2s infinite;
+    }
+
+    @keyframes pulseRed {
+        0% { text-shadow: 0 0 20px rgba(255, 51, 51, 0.5); }
+        50% { text-shadow: 0 0 40px rgba(255, 51, 51, 0.8); }
+        100% { text-shadow: 0 0 20px rgba(255, 51, 51, 0.5); }
+    }
+
+    /* Meta Alvo */
+    .meta-target {
+        color: #fff;
+        background: rgba(255,255,255,0.1);
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        display: inline-block;
+        margin-bottom: 15px;
+        border: 1px dashed rgba(255,255,255,0.3);
+    }
+
+    .record-count {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        margin-top: 10px;
+    }
+
+    /* --- HISTÓRICO E FILTROS --- */
+    .log-time-section {
+        background: rgba(20, 20, 35, 0.6);
+        border-radius: 16px;
+        border: 1px solid var(--glass-border);
+        padding: 25px;
+    }
+
+    .history-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .history-header h2 {
+        margin: 0;
+        color: #fff;
+        font-size: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* Formulário de Filtro */
+    .filter-form {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: rgba(0,0,0,0.2);
+        padding: 5px 15px;
+        border-radius: 50px;
+        border: 1px solid var(--glass-border);
+    }
+
+    .date-input-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--text-muted);
+    }
+
+    input[type="date"] {
+        background: transparent;
+        border: none;
+        color: #fff;
+        font-family: 'Poppins', sans-serif;
+        font-size: 1rem;
+        outline: none;
+        color-scheme: dark; 
+    }
+
+    .btn-search {
+        background: var(--neon-purple);
+        color: #fff;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: background 0.3s;
+    }
+    .btn-search:hover { background: #b90eb9; }
+
+    .btn-clear {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.9rem;
+        margin-left: 90px;
+        transition: color 0.3s;
+    }
+    .btn-clear:hover { color: #fff; }
+
+    /* --- TABELA --- */
+    .styled-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+
+    .styled-table th, .styled-table td {
+        padding: 15px;
+        text-align: left;
+    }
+
+    .styled-table th {
+        background-color: rgba(30, 30, 45, 0.9);
+        color: var(--neon-blue);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+        border-bottom: 2px solid var(--glass-border);
+    }
+
+    .styled-table td {
+        border-bottom: 1px solid var(--glass-border);
+        color: var(--text-main);
+    }
+
+    .styled-table tr:hover {
+        background-color: rgba(255, 255, 255, 0.03);
+    }
+
+    /* Flash Messages */
+    .alert { padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; }
+    .alert-success { background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #6ee7b7; }
+    .alert-danger { background: rgba(220, 38, 38, 0.2); border: 1px solid #ef4444; color: #fca5a5; }
+    
+    .empty-message {
+        text-align: center;
+        padding: 40px;
+        color: var(--text-muted);
+        font-style: italic;
+    }
+
+    @media (max-width: 768px) {
+        .history-header { flex-direction: column; align-items: flex-start; }
+        .filter-form { width: 100%; justify-content: space-between; }
+        .average-time { font-size: 4rem; }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="page-container">
+    
     <div class="page-header">
-        <h1>{{ title }}</h1>
+        <h1><i class="fa-solid fa-chart-line"></i> {{ title }}</h1>
         <a href="{{ url_for('lancar_tempo') }}" class="action-btn resolve-btn">
-            <i class="fa-solid fa-plus"></i> Lançar Meta Diária
+            <i class="fa-solid fa-stopwatch"></i> Lançar Meta Diária
         </a>
     </div>
-    <p>Seu desempenho em {{ now.strftime('%B de %Y') }}</p>
+    
+    <p class="subtitle">
+        <i class="fa-regular fa-calendar-alt"></i> Desempenho em <strong>{{ now.strftime('%B de %Y') }}</strong>
+    </p>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}{% for category, message in messages %}
@@ -20,48 +301,76 @@
 
     <div class="report-section">
         <div class="my-average-card">
-            <h2>Sua Média do Mês</h2>
-            <p class="average-time">{{ my_average_time }}</p>
-            <p class="record-count">{{ all_my_monthly_records_count }} dias registrados no total</p>
+            
+            {% if my_average_time > '02:00' %}
+                {% set color_class = 'status-red' %}
+            {% elif my_average_time >= '01:45' %}
+                {% set color_class = 'status-yellow' %}
+            {% else %}
+                {% set color_class = 'status-green' %}
+            {% endif %}
+
+            <h2><i class="fa-solid fa-calculator"></i> Sua Média do Mês</h2>
+            
+            <p class="average-time {{ color_class }}">{{ my_average_time }}</p>
+            
+            <div class="meta-target">
+                <i class="fa-solid fa-crosshairs"></i> Limite da Meta: <strong>02:00 min</strong>
+            </div>
+            
+            <p class="record-count">
+                <i class="fa-solid fa-check-circle"></i> {{ all_my_monthly_records_count }} dias registrados
+            </p>
         </div>
     </div>
 
     <div class="log-time-section">
         <div class="history-header">
-            <h2>Seu Histórico Diário</h2>
+            <h2><i class="fa-solid fa-list-ul"></i> Histórico Diário</h2>
+            
             <form method="GET" action="{{ url_for('minhas_metas') }}" class="filter-form">
-                <div class="filter-group date-filter-group">
-                    <label for="search_date_input"><i class="fa-solid fa-calendar"></i></label>
-                    <input type="date" name="search_date" id="search_date_input" class="form-control" value="{{ search_date or '' }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <div class="date-input-wrapper">
+                    <i class="fa-solid fa-filter" style="color: var(--neon-purple);"></i>
+                    <input type="date" name="search_date" value="{{ search_date or '' }}" title="Filtrar por data">
                 </div>
-                <div class="filter-group">
-                    <button type="submit" class="btn-search"><i class="fa-solid fa-search"></i> Buscar</button>
+                <div class="filter-actions">
+                    <button type="submit" class="btn-search">Buscar</button>
                     {% if search_date %}
-                        <a href="{{ url_for('minhas_metas') }}" class="btn-clear">Limpar</a>
+                        <a href="{{ url_for('minhas_metas') }}" class="btn-clear"><i class="fa-solid fa-xmark"></i> Limpar</a>
                     {% endif %}
                 </div>
             </form>
         </div>
 
         {% if my_records %}
-            <table class="styled-table">
-                <thead>
-                    <tr>
-                        <th>Data</th>
-                        <th>Tempo Registrado (MM:SS)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for record in my_records %}
-                    <tr>
-                        <td>{{ record.date_recorded.strftime('%d/%m/%Y') }}</td>
-                        <td>{{ '%02d:%02d' % (record.time_in_seconds // 60, record.time_in_seconds % 60) }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div style="overflow-x: auto;">
+                <table class="styled-table">
+                    <thead>
+                        <tr>
+                            <th><i class="fa-regular fa-calendar"></i> Data</th>
+                            <th><i class="fa-solid fa-clock"></i> Tempo Registrado (MM:SS)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in my_records %}
+                        <tr>
+                            <td>{{ record.date_recorded.strftime('%d/%m/%Y') }}</td>
+                            <td>
+                                <span style="color: #fff; font-family: monospace; font-size: 1.1em;">
+                                    {{ '%02d:%02d' % (record.time_in_seconds // 60, record.time_in_seconds % 60) }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         {% else %}
-            <p>Nenhum tempo registrado para a data selecionada.</p>
+            <div class="empty-message">
+                <i class="fa-regular fa-folder-open" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                <p>Nenhum tempo registrado para a data selecionada.</p>
+            </div>
         {% endif %}
     </div>
 </div>
